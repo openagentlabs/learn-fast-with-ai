@@ -1,0 +1,26 @@
+steps:
+  # Step 1: Build the Docker image using docker/Dockerfile
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REPO}/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '-f'
+      - 'docker/Dockerfile'
+      - '.'
+
+  # Step 2: Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REPO}/${_SERVICE_NAME}:${SHORT_SHA}'
+
+images:
+  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REPO}/${_SERVICE_NAME}:${SHORT_SHA}'
+
+# Substitutions (passed from GitHub Actions)
+substitutions:
+  _PROJECT_ID: 'keithtest001'
+  _SERVICE_NAME: 'learn-fast-with-ai'
+  _REGION: 'europe-west2'
+  _ARTIFACT_REPO: 'nextjs-containers'

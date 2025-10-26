@@ -49,17 +49,17 @@ jobs:
           # 1. Define the full image path using the short SHA for unique tagging
           IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
           
-          # 2. Submit the build, which also pushes the image automatically
+          # 2. Submit the build using cloudbuild.yaml which defines:
+          # - Build step using docker/Dockerfile (multi-stage build)
+          # - Push step to Artifact Registry
           # The Dockerfile uses multi-stage builds to:
           # - Install all dependencies (including dev deps for building)
           # - Build the Next.js application (creates .next directory)
           # - Create a minimal production image with just the built output
-          # Build using Cloud Build with the Dockerfile from the docker directory
           gcloud builds submit \
-            --tag $IMAGE_TAG \
-            --file docker/Dockerfile \
-            --project ${{ env.PROJECT_ID }} \
-            .
+            --config=cloudbuild.yaml \
+            --substitutions=SHORT_SHA=${{ github.sha }} \
+            --project ${{ env.PROJECT_ID }}
             
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV # Export tag for deployment step
 
