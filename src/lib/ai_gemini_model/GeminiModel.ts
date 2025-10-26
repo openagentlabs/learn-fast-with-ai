@@ -1,7 +1,7 @@
 // UUID: 331faae3-9ff1-4627-9e0d-4e5d22fdf2b2
 // GeminiModel - Wrapper for Google Gemini AI using GenKit
 
-import { configureGenkit } from 'genkit';
+import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import type {
   IAIModel,
@@ -70,13 +70,12 @@ export class GeminiModel implements IAIModel {
 
     try {
       // Configure GenKit with Google AI
-      configureGenkit({
+      genkit({
         plugins: [
           googleAI({
             apiKey: this.apiKey,
           }),
         ],
-        logLevel: 'info',
       });
 
       this.isInit = true;

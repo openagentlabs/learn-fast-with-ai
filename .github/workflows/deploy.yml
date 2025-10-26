@@ -1,0 +1,77 @@
+name: Deploy Next.js Container to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+# Define environment variables used throughout the workflow
+env:
+  PROJECT_ID: 'keithtest001'      # <- REPLACE ME
+  SERVICE_NAME: 'learn-fast-with-ai'        # <- REPLACE ME
+  REGION: 'europe-west2'                 # <- REPLACE ME (e.g., us-west1, europe-west1)
+  ARTIFACT_REPO: 'nextjs-containers'    # Name of your Artifact Registry repo
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    # Permissions required to fetch the OIDC token if using Workload Identity Federation
+    # If using Service Account Key, this is less critical but good practice.
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # --- 1. Authenticate to Google Cloud ---
+      - name: Authenticate to GCP
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          # Uses the secret containing the full JSON key of the Service Account
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # --- 2. Configure Docker for Artifact Registry ---
+      - name: Set up Cloud SDK and Configure Docker
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: '>= 363.0.0'
+          # Automatically configures Docker to authenticate to Artifact Registry
+          # The region-docker.pkg.dev format is standard for Artifact Registry
+          install_components: 'gke-gcloud-auth-plugin'
+
+      # --- 3. Build and Push Container Image ---
+      - name: Build and Push Image to Artifact Registry
+        run: |
+          # 1. Define the full image path using the short SHA for unique tagging
+          IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          
+          # 2. Submit the build, which also pushes the image automatically
+          # The Dockerfile uses multi-stage builds to:
+          # - Install all dependencies (including dev deps for building)
+          # - Build the Next.js application (creates .next directory)
+          # - Create a minimal production image with just the built output
+          # Build using Cloud Build with the Dockerfile from the docker directory
+          gcloud builds submit \
+            --tag $IMAGE_TAG \
+            --file docker/Dockerfile \
+            --project ${{ env.PROJECT_ID }} \
+            .
+            
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV # Export tag for deployment step
+
+      # --- 4. Deploy to Cloud Run ---
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          # Use the image tag exported from the previous step
+          image: ${{ env.IMAGE_TAG }}
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          
+          # Use the --allow-unauthenticated flag if you want a public service (common for web apps)
+          # Otherwise, omit this line for a private service
+          flags: --allow-unauthenticated

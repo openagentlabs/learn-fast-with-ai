@@ -1,54 +1,49 @@
-# Multi-stage build for Next.js application
-# Stage 1: Build stage
-FROM node:20-alpine AS builder
+# Production-ready Next.js application
+FROM node:20-alpine AS base
 
-# Set working directory
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package files
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json* ./
 
-# Install dependencies
+# Install ALL dependencies (needed for build)
 RUN npm ci
 
-# Copy all source files
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Set environment to production for build
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build the Next.js application
 RUN npm run build
 
-# Stage 2: Production stage
-FROM node:20-alpine AS runner
-
-# Set working directory
+# Production image, copy all the files and run next
+FROM base AS runner
 WORKDIR /app
 
-# Set environment to production
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy package files
-COPY package.json package-lock.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production && \
-    npm cache clean --force
-
-# Copy built application from builder stage
-COPY --from=builder /app/.next ./.next
+# Copy built application
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.ts ./
-COPY --from=builder /app/tsconfig.json ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy environment variables (if needed)
-# Note: .env file should be provided at runtime
-# COPY .env .env
-
-# Change ownership to nextjs user
-RUN chown -R nextjs:nodejs /app
+# Create data directory for database persistence
+RUN mkdir -p /app/data && \
+    chown -R nextjs:nodejs /app/data
 
 # Switch to non-root user
 USER nextjs
@@ -58,11 +53,12 @@ EXPOSE 3000
 
 # Set port environment variable
 ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Start the application
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
 
