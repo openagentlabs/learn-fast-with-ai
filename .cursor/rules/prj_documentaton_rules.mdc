@@ -2,27 +2,28 @@
 alwaysApply: true
 ---
 
-## 📘 AI Agent Documentation Rules (Concise Version)
+## 📘 Project Documentation Rules
 
 ## 1. Core Principles
 - Every folder **must document itself** with a `README.md`.
-- Docs must explain **why, what, and how**.
+- Prioritize **"What it is and how to use it"** over deep technical details.
+- Docs must answer **why** (purpose), **what** (overview), and **how** (usage/API).
 - Keep docs **close to code**, **updated with changes**, and **easy to find**.
 
-**Golden Rule:** Always read the folder’s `README.md` before using or editing its code.
+**Golden Rule:** Always read the folder's `README.md` before using or editing its code.
 
 ---
 
-## 2. Documentation Layers
-1. **README.md** → how to use and integrate.
-2. **JSDoc** → what the code does.
-3. **Inline comments** → why decisions were made.
+## 2. Documentation Layers (Scope)
+1. **README.md** → External view: how to use and integrate the component (Consumer focus).
+2. **JSDoc** → Internal view: what the code (functions, classes) does (Developer focus).
+3. **Inline comments** → Decision view: why specific decisions were made (Maintainer focus).
 
 ---
 
 ## 3. Mandatory Requirements
 **Each module/service/page/component/tool/workflow must have:**
-- `README.md`
+- `README.md` with intuitive layout (Section 4)
 - Copy-pasteable usage examples
 - Configuration & dependencies
 - Integration & error-handling notes
@@ -34,14 +35,30 @@ alwaysApply: true
 
 ---
 
-## 4. README.md Standards (required sections, in order)
-1. **Overview** – what it does
-2. **Purpose** – why it exists
-3. **Usage Examples** – basic and advanced
-4. **API Reference** – public methods, params, returns
-5. **Configuration** – env vars & dependencies
-6. **Integration Points** – how it interacts with others
-7. **Error Handling & Testing** – how to test and recover
+## 4. 🥇 Intuitive README.md Layout (Required sections, in order)
+### 1. Component Title & Overview 🚀
+- **What it does:** Single sentence summary of the component's function.
+- **Purpose:** 1-2 paragraphs explaining why it exists and the problem it solves. Start here for immediate context.
+
+### 2. Quick Start & Usage Examples 🧑‍💻
+- **How to use it:** Most common, copy-pasteable example first. Show basic import and usage.
+- **Advanced Usage:** Examples of key features, optional parameters, or common use cases.
+
+### 3. Installation & Configuration ⚙️
+- **Dependencies:** List external dependencies, packages, or other components.
+- **Setup:** Installation instructions (`npm install`, `yarn add`).
+- **Configuration:** Required environment variables (`.env`) or initialization options.
+
+### 4. API Reference 📖
+- Concise list of all public methods, props, or endpoints.
+- Link to JSDoc/source code for detailed parameter/return type info. Keep this brief—usage examples already cover the "how."
+
+### 5. Integration Points 🔗
+- Describe how this component interacts with others.
+- **Error Handling:** Common error states and how to recover or handle them.
+
+### 6. Testing & Development ✅
+- Instructions on how to run tests locally for this component.
 
 > Applies to: `/src/services/`, `/src/lib/`, `/src/app/pages/`, `/src/tools/`, `/src/workflows/`, `/src/components/`, `/src/actions/`, `/src/hooks/`
 
@@ -52,13 +69,19 @@ alwaysApply: true
 - Document **parameters**, **returns**, **exceptions**, and **examples** where needed.
 - Use clear, concise English.
 
-**Good:**
+**Good Example:**
 ```ts
 /**
- * Generates AI output from a user prompt.
- * @param prompt User input text.
- * @returns AI-generated response.
- * @throws Error if model call fails.
+ * Generates AI output from a user prompt by calling the configured model.
+ * @param {string} prompt User input text.
+ * @param {object} [options] Optional configuration for the model call.
+ * @param {string} [options.model] The specific model to use (default: 'gpt-4').
+ * @returns {Promise<string>} AI-generated response text.
+ * @throws {Error} Throws an error if the model call fails due to API issues.
  * @example
- * const out = await generateResponse("Hello");
+ * // Basic usage
+ * const out = await generateResponse("What is the capital of France?");
+ * @example
+ * // Advanced usage with model override
+ * const outFast = await generateResponse("Briefly describe the weather.", { model: 'gpt-3.5-turbo' });
  */
