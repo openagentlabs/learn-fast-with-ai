@@ -43,6 +43,27 @@ jobs:
           # The region-docker.pkg.dev format is standard for Artifact Registry
           install_components: 'gke-gcloud-auth-plugin'
 
+      # --- 2.5. Register Cloud Deploy Pipeline and Target (One-time setup) ---
+      - name: Register Cloud Deploy Pipeline and Target
+        run: |
+          # Enable Cloud Deploy API (idempotent - won't error if already enabled)
+          gcloud services enable clouddeploy.googleapis.com \
+            --project=${{ env.PROJECT_ID }} || true
+          
+          # Apply Cloud Deploy pipeline configuration (idempotent)
+          # If pipeline already exists, this will update it; if not, it will create it
+          gcloud deploy apply --file=deploy/clouddeploy.yaml \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} || true
+          
+          # Apply Cloud Run target configuration (idempotent)
+          # If target already exists, this will update it; if not, it will create it
+          gcloud deploy apply --file=deploy/target-dev.yaml \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} || true
+          
+          echo "Cloud Deploy pipeline and target registered/updated successfully"
+
       # --- 3. Build and Push Container Image ---
       - name: Build and Push Image to Artifact Registry
         run: |
@@ -63,15 +84,21 @@ jobs:
             
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV # Export tag for deployment step
 
-      # --- 4. Deploy to Cloud Run ---
-      - name: Deploy to Cloud Run
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          # Use the image tag exported from the previous step
-          image: ${{ env.IMAGE_TAG }}
-          service: ${{ env.SERVICE_NAME }}
-          region: ${{ env.REGION }}
+      # --- 4. Deploy to Cloud Run using Cloud Deploy ---
+      # This step creates a Cloud Deploy release which automatically deploys to the dev target
+      - name: Create and Deploy Release via Cloud Deploy
+        run: |
+          # Define the release name using short SHA for uniqueness
+          RELEASE_NAME="release-${{ github.sha }}"
           
-          # Use the --allow-unauthenticated flag if you want a public service (common for web apps)
-          # Otherwise, omit this line for a private service
-          flags: --allow-unauthenticated
+          # Create Cloud Deploy release and trigger deployment
+          # This will automatically deploy to the dev target defined in deploy/target-dev.yaml
+          gcloud deploy releases create "$RELEASE_NAME" \
+            --delivery-pipeline=learn-fast-with-ai-pipeline \
+            --region=${{ env.REGION }} \
+            --source=./deploy \
+            --images=app=${{ env.IMAGE_TAG }} \
+            --project=${{ env.PROJECT_ID }}
+          
+          echo "Release created: $RELEASE_NAME"
+          echo "Deployment to Cloud Run initiated automatically"

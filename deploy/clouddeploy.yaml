@@ -1,0 +1,17 @@
+# Google Cloud Deploy Pipeline Configuration
+# UUID: 3f8e4c2a-9b1d-4f7e-a3c5-6d8e9f0a1b2c
+# Pipeline Definition for learn-fast-with-ai
+
+apiVersion: deploy.cloud.google.com/v1
+kind: DeliveryPipeline
+metadata:
+  name: learn-fast-with-ai-pipeline
+description: Cloud Deploy pipeline for learn-fast-with-ai application
+serialPipeline:
+  stages:
+    - targetId: dev
+      profiles: []
+      strategy:
+        standard:
+          verify: false
+

@@ -1,0 +1,19 @@
+# Cloud Deploy Target Configuration for Dev Environment
+# UUID: 4e9f5d3b-ac2e-5f8f-b4d6-7e9f0a1b2c3d
+# Cloud Run target for learn-fast-with-ai application
+
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+  name: dev
+description: Cloud Run dev target for learn-fast-with-ai
+executionConfigs:
+  - usages:
+      - RENDER
+      - DEPLOY
+    executionEnvironmentType: CLOUD_RUN
+    cloudRun:
+      location: europe-west2
+      project: keithtest001
+    serviceAccount: default
+
