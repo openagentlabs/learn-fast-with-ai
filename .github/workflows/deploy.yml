@@ -91,15 +91,15 @@ jobs:
           # Define the release name using short SHA for uniqueness
           RELEASE_NAME="release-${{ github.sha }}"
           
-          # Create Cloud Deploy release and trigger deployment
-          # This will automatically deploy to the dev target defined in deploy/target-dev.yaml
-          # --deploy-config is used to specify the target configuration for rendering
+          # Create Cloud Deploy release and trigger deployment to dev target
+          # --to-target specifies which target to deploy to in the pipeline
+          # --images maps the container image to deploy
           gcloud deploy releases create "$RELEASE_NAME" \
             --delivery-pipeline=learn-fast-with-ai-pipeline \
             --region=${{ env.REGION }} \
-            --deploy-config=deploy/target-dev.yaml \
+            --to-target=dev \
             --images=app=${{ env.IMAGE_TAG }} \
             --project=${{ env.PROJECT_ID }}
           
           echo "Release created: $RELEASE_NAME"
-          echo "Deployment to Cloud Run initiated automatically"
+          echo "Deployment to Cloud Run dev target initiated automatically"
