@@ -1,0 +1,9 @@
+---
+alwaysApply: true
+---
+
+# Web Design Rules for AI Agent
+
+**UI Framework:** Use **Tailwind CSS v4** for all styling and **shadcn/ui** components for UI elements.
+**Styling Approach:** Prefer utility-first Tailwind classes over custom CSS. Use shadcn components from `src/components/ui/` for consistent, accessible UI patterns.
+**Component Usage:** Always use existing shadcn components before creating custom ones. Customize via Tailwind classes and component props, not by modifying shadcn source files.

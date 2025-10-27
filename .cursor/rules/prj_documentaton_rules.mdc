@@ -1,0 +1,64 @@
+---
+alwaysApply: true
+---
+
+## 📘 AI Agent Documentation Rules (Concise Version)
+
+## 1. Core Principles
+- Every folder **must document itself** with a `README.md`.
+- Docs must explain **why, what, and how**.
+- Keep docs **close to code**, **updated with changes**, and **easy to find**.
+
+**Golden Rule:** Always read the folder’s `README.md` before using or editing its code.
+
+---
+
+## 2. Documentation Layers
+1. **README.md** → how to use and integrate.
+2. **JSDoc** → what the code does.
+3. **Inline comments** → why decisions were made.
+
+---
+
+## 3. Mandatory Requirements
+**Each module/service/page/component/tool/workflow must have:**
+- `README.md`
+- Copy-pasteable usage examples
+- Configuration & dependencies
+- Integration & error-handling notes
+- Links to related docs
+
+**All public code must have:**
+- JSDoc with `@param`, `@returns`, `@throws`, clear descriptions, and examples (for complex methods)
+- **UUID comments** for every created/modified code block (for change tracking)
+
+---
+
+## 4. README.md Standards (required sections, in order)
+1. **Overview** – what it does
+2. **Purpose** – why it exists
+3. **Usage Examples** – basic and advanced
+4. **API Reference** – public methods, params, returns
+5. **Configuration** – env vars & dependencies
+6. **Integration Points** – how it interacts with others
+7. **Error Handling & Testing** – how to test and recover
+
+> Applies to: `/src/services/`, `/src/lib/`, `/src/app/pages/`, `/src/tools/`, `/src/workflows/`, `/src/components/`, `/src/actions/`, `/src/hooks/`
+
+---
+
+## 5. JSDoc Standards
+- Add JSDoc to all **public** functions, classes, interfaces.
+- Document **parameters**, **returns**, **exceptions**, and **examples** where needed.
+- Use clear, concise English.
+
+**Good:**
+```ts
+/**
+ * Generates AI output from a user prompt.
+ * @param prompt User input text.
+ * @returns AI-generated response.
+ * @throws Error if model call fails.
+ * @example
+ * const out = await generateResponse("Hello");
+ */

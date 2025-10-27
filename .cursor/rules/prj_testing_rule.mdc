@@ -1,0 +1,259 @@
+---
+alwaysApply: true
+---
+
+# Testing Rules and Conventions
+
+## Testing Framework and Tooling
+
+This project uses **AVA** (Async Versatile Assertions) as the primary testing framework.
+
+### Key Dependencies:
+- **AVA**: Modern test runner with built-in assertion library
+- **TypeScript**: All tests are written in TypeScript
+- **ES Modules**: Tests use ES module syntax with `.js` extensions in imports
+
+## Test File Organization (MANDATORY)
+
+### Directory Structure:
+- **MANDATORY**: All test files must be placed in a `tests/` subfolder within each module
+- The `tests/` subfolder is required for all modules, components, and pages
+- Test files follow the naming pattern: `[ModuleName].test.ts`
+- Example structure:
+  ```
+  src/lib/config/
+    ├── AppConfig.ts
+    ├── index.ts
+    ├── README.md
+    └── tests/                    (MANDATORY subfolder)
+        ├── AppConfig.test.ts
+        └── AppConfig.integration.test.ts
+  ```
+
+### Test File Naming Convention:
+- `[ComponentName].test.ts` - Unit tests for a specific component/module
+- `[ComponentName].integration.test.ts` - Integration tests
+- `[ComponentName].config-integration.test.ts` - Configuration integration tests
+- All test files must use `.test.ts` extension for clarity
+
+## AVA Testing Patterns
+
+### Basic Test Structure:
+```typescript
+import test from 'ava';
+import { ComponentName } from '../ComponentName.js';
+
+test('should describe what the test does', t => {
+    // Arrange
+    const input = 'test data';
+    
+    // Act
+    const result = ComponentName.method(input);
+    
+    // Assert
+    t.true(result.expectedValue);
+});
+```
+
+### Common AVA Assertions:
+- `t.true(value)` - Assert value is truthy
+- `t.false(value)` - Assert value is falsy
+- `t.is(actual, expected)` - Assert strict equality
+- `t.deepEqual(actual, expected)` - Assert deep equality
+- `t.throws(fn)` - Assert function throws
+- `t.notThrows(fn)` - Assert function doesn't throw
+- `t.truthy(value)` - Assert value is truthy (different from t.true)
+- `t.falsy(value)` - Assert value is falsy
+
+### Setup and Teardown:
+```typescript
+test.beforeEach(() => {
+    // Reset state before each test
+});
+
+test.afterEach(() => {
+    // Cleanup after each test
+});
+
+test.before(() => {
+    // One-time setup
+});
+
+test.after(() => {
+    // One-time cleanup
+});
+```
+
+## Test Coverage Requirements (MANDATORY)
+
+### Coverage Standards:
+- **Minimum Coverage**: Aim for >80% code coverage across all modules
+- **MANDATORY**: Every class, function, and public method must have corresponding tests
+- Do not consider a module, component, or page complete without tests
+- Test both success and error scenarios for all code paths
+- Include edge cases and boundary conditions
+
+### Always Write Tests For:
+- **All Classes**: Every class must have tests for all public methods
+- **Class Constructors**: Test constructor logic and initialization
+- **Factory Methods**: Test static `create()` methods and other factories
+- **Public Functions/Methods**: Every public function must have corresponding tests
+- **Service Classes**: All service classes require comprehensive test coverage
+- **Utility Functions**: All utility functions need tests
+- **Error Handling**: Test error scenarios, exceptions, and edge cases
+- **Configuration Classes**: Test configuration loading and validation
+- **Integration Points**: Test external API integrations (mocked appropriately)
+- **Singleton Patterns**: Test singleton instance management and lifecycle
+
+### When to Write Tests:
+- **Immediately After Creating Code**: Write tests right after implementing classes/functions
+- **Before Moving On**: Run tests and fix any failures before proceeding to next task
+- **During Development**: Tests should be part of the development workflow, not an afterthought
+- **Code is Not Complete Without Tests**: A module without tests is considered incomplete
+
+### Test Categories:
+1. **Unit Tests**: Test individual functions/methods in isolation
+2. **Integration Tests**: Test component interactions and external dependencies
+3. **Configuration Tests**: Test configuration loading, validation, and error handling
+
+## Test Writing Guidelines
+
+### Test Structure (AAA Pattern):
+```typescript
+test('should [expected behavior] when [condition]', t => {
+    // Arrange - Set up test data and conditions
+    const input = 'test input';
+    const expected = 'expected output';
+    
+    // Act - Execute the code under test
+    const result = functionUnderTest(input);
+    
+    // Assert - Verify the result
+    t.is(result, expected);
+});
+```
+
+### Test Naming Convention:
+- Use descriptive names that explain the expected behavior
+- Format: `'should [expected behavior] when [condition]'`
+- Examples:
+  - `'should return true when text contains FINISHED'`
+  - `'should throw error when invalid input provided'`
+  - `'should initialize logger with default configuration'`
+
+### Import Patterns:
+```typescript
+// Always use .js extensions for ES modules
+import { ComponentName } from '../ComponentName.js';
+import test from 'ava';
+
+// For file system operations
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// For URL resolution (common pattern)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+```
+
+### Test Best Practices:
+- **Descriptive Names**: Use test names that explain the expected behavior
+  - Good: `'should return true when text contains FINISHED'`
+  - Bad: `'test 1'` or `'works'`
+- **Keep Tests Isolated**: Each test should be independent and not rely on other tests
+- **Use Built-in Assertions**: Use AVA's built-in assertions (t.is, t.true, t.deepEqual, etc.)
+- **Mock External Dependencies**: Mock external services, APIs, and file system operations when appropriate
+- **Test One Thing**: Each test should verify one specific behavior or outcome
+- **Follow AAA Pattern**: Arrange, Act, Assert - keep tests structured and readable
+- **Clean Up After Tests**: Use `afterEach` and `after` hooks to clean up resources
+- **Test Edge Cases**: Don't just test the happy path - test boundary conditions and error scenarios
+
+## Project-Specific Testing Patterns
+
+### Singleton Testing:
+```typescript
+test.beforeEach(() => {
+    // Reset singleton instances for clean tests
+    (SingletonClass as any).instance = undefined;
+});
+```
+
+### File System Testing:
+```typescript
+test('should create log directory if it does not exist', t => {
+    const testDir = path.join(__dirname, 'test-dir');
+    t.true(fs.existsSync(testDir), 'Directory should exist');
+});
+```
+
+### Configuration Testing:
+```typescript
+test('should load configuration from environment', t => {
+    const config = Config.fromEnvironment();
+    t.truthy(config, 'Configuration should be loaded');
+    t.is(typeof config.apiKey, 'string', 'API key should be string');
+});
+```
+
+## Test Execution
+
+### Running Tests:
+```bash
+# Run all tests
+npm test
+
+# Run specific test file
+npx ava src/lib/message/tests/MessageUtils.test.ts
+
+# Run tests in watch mode
+npx ava --watch
+```
+
+## Memory and Project Conventions
+
+Based on project memories:
+- **Test Location**: Tests are created in separate 'tests' folders with their own test file names
+- **Test Workspace**: Test code should be created in @test_workspace directory for this project
+- **Service Testing**: Every service tool and function created must be added to the tests as a project-wide convention
+
+## Integration with Build Process
+
+- Tests are compiled as part of the TypeScript build process
+- Test files use the same TypeScript configuration as the main codebase
+- All test files must compile without errors before running tests
+
+## AI Agent Code Generation Rules for Testing
+
+When the AI agent creates any new code, it MUST follow these testing rules:
+
+1. **Always Create Tests**: Immediately after creating a class, function, or module, create corresponding tests
+2. **Create tests/ Subfolder**: Always create a `tests/` subfolder within the module directory
+3. **Follow Naming Convention**: Test files must be named `[ModuleName].test.ts`
+4. **Import with .js Extension**: Always use `.js` extension in imports (ES modules requirement)
+5. **Use AAA Pattern**: Structure all tests using Arrange-Act-Assert pattern
+6. **Test All Public Methods**: Every public method and function must have at least one test
+7. **Test Error Scenarios**: Include tests for error handling and edge cases
+8. **Test Factory Methods**: Test the static `create()` method if the class has one
+9. **Run Tests**: After creating tests, run them to ensure they pass
+10. **Fix Failures**: If tests fail, fix the issues before moving on
+11. **Coverage Goal**: Aim for >80% code coverage
+12. **Don't Skip Testing**: Never skip test creation - tests are mandatory, not optional
+
+### Example Workflow for AI Agent:
+```
+1. Create module: src/lib/auth/AuthService.ts
+2. Create tests subfolder: src/lib/auth/tests/
+3. Create test file: src/lib/auth/tests/AuthService.test.ts
+4. Write comprehensive tests covering all public methods
+5. Run tests: npx ava src/lib/auth/tests/AuthService.test.ts
+6. Fix any failures
+7. Verify coverage is >80%
+8. Only then consider the module complete
+```
+
+### Test Creation is MANDATORY:
+- A module without tests is considered **incomplete**
+- Do not create a module without also creating its tests
+- Do not move to the next task until tests are written and passing
+- Tests are not optional - they are a required part of code delivery

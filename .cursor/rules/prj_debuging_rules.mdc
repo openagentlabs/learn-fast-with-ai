@@ -1,0 +1,449 @@
+---
+alwaysApply: true
+---
+
+
+# Debugging Rules and Best Practices
+
+## Overview
+This document provides comprehensive guidelines for debugging and generating code with proper instrumentation for the TerraChatWeb application, a Next.js 15 application built with TypeScript, React 19, and Tailwind CSS v4.
+
+---
+
+## 🚨 MANDATORY: Clean Up Temporary Debug Code
+
+**After debugging is complete and issues are fixed, the AI Agent MUST:**
+
+1. **Remove all temporary debug code** added during debugging (console.log, debugger statements, temporary variables)
+2. **Delete temporary files** from @scratch/ and @mcp_chrome_images/ directories
+3. **Restore code to production-ready state** - no debug artifacts left behind
+4. **Verify clean state** - run linter and tests to ensure no debug code remains
+
+**This cleanup step is MANDATORY and must be performed after every debugging session.**
+
+---
+
+## 0. Debugging and Temporary File Storage
+
+### MANDATORY: Use @scratch/ Directory for Debugging and Temporary Files
+
+**Location:** /home/keith/Dev/TerraChatWeb/debuging/scratch/
+
+**Purpose:**
+When debugging issues, investigating problems, or needing to save temporary information during development, the AI Agent MUST use the @scratch/ directory for storing temporary files, test data, or debugging artifacts.
+
+**When to Use:**
+- Saving temporary debug output or logs
+- Creating test files for investigation
+- Storing intermediate results during debugging
+- Saving examples or test data during development
+- Creating temporary scripts for debugging purposes
+- Storing analysis or diagnostic information
+
+**What NOT to Store:**
+- Production code
+- Permanent documentation
+- Test files (use tests/ subfolders instead)
+- Configuration files
+- Source code files
+
+**Best Practices:**
+1. Clean Up: Delete temporary files from @scratch/ when debugging is complete
+2. Organization: Create subdirectories in @scratch/ for different debugging sessions
+3. Naming: Use descriptive names for temporary files, for example debug-output-2025-10-15.txt
+4. Git Ignored: The @scratch/ directory is git-ignored, so files won't be committed
+5. Documentation: If findings are important, document them in appropriate README.md files, not in scratch files
+
+### Chrome MCP Server Screenshots
+
+**Location:** /home/keith/Dev/TerraChatWeb/debuging/images/
+
+**Purpose:**
+When debugging web pages and taking screenshots using the Chrome MCP server, store them in the @mcp_chrome_images/ directory (located at debuging/images/).
+
+**When to Use:**
+- Taking screenshots during web UI debugging
+- Capturing page states for investigation
+- Documenting visual bugs or issues
+- Creating visual references for testing
+- Capturing page layouts for analysis
+
+**Best Practices:**
+1. Descriptive Names: Use descriptive filenames that indicate what's being captured, for example login-page-error-2025-10-15.png
+2. Organization: Create subdirectories for different debugging sessions or features
+3. Clean Up: Remove screenshots after debugging is complete or issue is resolved
+4. Git Ignored: The debuging/images/ directory is git-ignored
+5. Format: Use PNG or JPEG format for screenshots
+
+**AI Agent Rules:**
+- When needing temporary storage during debugging → Use @scratch/
+- When investigating an issue → Store findings temporarily in @scratch/
+- When creating test data for debugging → Save in @scratch/
+- When taking screenshots with Chrome MCP server → Use @mcp_chrome_images/ (located at debuging/images/)
+- When debugging is complete → Clean up files from @scratch/ and @mcp_chrome_images/
+- Don't use @scratch/ for permanent files or documentation
+
+---
+
+## 1. Logging Strategy for Debugging
+
+### 1.1 When to Add Debug Logging
+
+**ALWAYS add debug logging when:**
+- Creating new functions or methods, entry and exit points
+- Making external API calls or network requests
+- Performing file system operations
+- Processing configuration or environment variables
+- Handling errors or exceptions
+- Executing conditional logic with multiple branches
+- Processing user input or form data
+- Performing data transformations or calculations
+- Working with state management, React hooks, context
+- During asynchronous operations, promises, async and await
+
+### 1.2 How to Add Logging
+
+- Use a shared logger instance
+- Create child loggers with contextual fields such as component, module, function, requestId
+- Log at debug for flow, info for key milestones, warn for slow paths or degradations, error for failures
+- Capture parameters and result summaries, not large payloads
+- Include safe context and avoid secrets
+
+### 1.3 Log Inspection
+
+**After running code, ALWAYS check logs:**
+- Log file location: /log/app.log in project root
+- Logs are in JSON format for structured analysis
+- Use log levels: debug, info, warn, error
+
+---
+
+## 2. Next.js Specific Debugging
+
+### 2.1 Server vs Client Component Debugging
+
+**Identify component type:**
+- Server Components run on the server; inspect terminal or server logs
+- Client Components run in the browser; use browser DevTools console
+- Server Actions: add logging at entry and before response
+- API Routes: log request and response metadata
+
+### 2.2 Server Actions Debugging
+
+- Add contextual log fields such as action name and requestId
+- Log inputs at a safe, redacted level
+- Log completion with result summary
+- Log and surface structured errors
+
+### 2.3 React Hooks Debugging
+
+- Log on mount and unmount
+- Log state changes in effects
+- Log render cycles sparingly to avoid noise
+
+---
+
+## 3. TypeScript Debugging
+
+### 3.1 Type Safety and Debugging
+
+**ALWAYS:**
+- Use strict TypeScript mode
+- Define proper types for function parameters and return values
+- Use type guards for runtime checking
+- Add validation and assertions with clear error messages
+- Log validation results at debug level
+
+### 3.2 Error Type Handling
+
+- Distinguish between Error subclasses, for example TypeError vs general Error
+- Capture message and stack
+- Fallback to stringifying unknown error shapes
+
+---
+
+## 4. Configuration and Environment Debugging
+
+### 4.1 Configuration Issues
+
+**ALWAYS check configuration at startup:**
+- Log environment and configuration loading
+- Validate configuration and fail fast if invalid
+- Log only safe keys or summaries
+
+### 4.2 Environment Variables
+
+**Debug environment loading:**
+- Verify required variables exist
+- Log presence flags rather than secrets
+- Include NODE_ENV and other safe indicators
+
+---
+
+## 5. Error Handling Patterns
+
+### 5.1 Comprehensive Error Context
+
+**Capture full error context:**
+- Use a scoped logger with function and correlation fields
+- Log steps and transitions
+- On failure, include message, stack, identifiers, and timestamps
+- Re-throw or map to typed results as appropriate
+
+### 5.2 Error Boundaries (React)
+
+- Use an error boundary to catch rendering errors
+- Show a fallback UI
+- Report error details to your logging and telemetry pipeline
+
+---
+
+## 6. Performance Debugging
+
+### 6.1 Measure Execution Time
+
+- Record start and end times around expensive operations
+- Log durations as metrics and warn on thresholds
+- Include result summaries, not entire datasets
+
+### 6.2 React Performance Debugging
+
+- Track render counts and render durations
+- Investigate excessive re-renders
+- Use memoization and stable dependencies where appropriate
+
+---
+
+## 7. Data Flow Debugging
+
+### 7.1 Props and State Tracking
+
+- Log props on mount and when key props change
+- Log relevant state transitions
+- Avoid logging large objects; summarize and sample keys
+
+### 7.2 API Response Debugging
+
+- Log request initiation with endpoint and timestamp
+- Log response status, status text, and safe headers
+- Log parse success and key data shapes
+- Log errors with endpoint context
+
+---
+
+## 8. Code Generation Guidelines for AI Agent
+
+### 8.1 Default Logging Instrumentation
+
+**When generating NEW functions, ALWAYS include:**
+1. Logger initialization with context
+2. Entry point logging at debug
+3. Key decision point logging
+4. Error handling with logging
+5. Exit point logging with result summary
+
+### 8.2 Component Generation Guidelines
+
+- For Server Components: initialize a contextual logger and log renders
+- For Client Components: prefer browser console for transient debugging
+- Keep logs concise and contextual
+
+### 8.3 Error Prevention
+
+**When generating code, INCLUDE:**
+- Input validation with helpful error messages
+- Type guards for runtime type safety
+- Null and undefined checks
+- Array boundary checks
+- Try and catch for async operations
+- Fallback values for optional parameters
+
+---
+
+## 9. Testing and Validation
+
+### 9.1 Unit Test Debugging
+
+**When tests fail:**
+1. Check test logs in console output
+2. Add targeted debug output to inspect values
+3. Use test runner features to isolate a single test
+4. Verify imports and environment setup
+
+### 9.2 Integration Test Debugging
+
+- Elevate log level to debug during integration runs
+- Inspect structured logs and artifacts afterward
+- Trace cross-service interactions with correlation IDs
+
+---
+
+## 10. Common Debugging Scenarios
+
+### 10.1 "Cannot find module" Errors
+
+**Check:**
+1. Module path and filename case sensitivity
+2. Correct extensions for the module system in use
+3. Path aliases match tsconfig and build output
+4. The module exists where expected
+
+### 10.2 Configuration Not Loading
+
+**Debug checklist:**
+- Validate configuration object shape
+- Verify environment variables are present
+- Confirm .env presence and loading sequence
+
+### 10.3 Async Issues
+
+- Trace promise resolution and rejection paths
+- Log before await, after await, and in catch and finally
+- Ensure errors in chained promises are handled
+
+### 10.4 State Not Updating, React
+
+- Log intended state updates and previous state
+- Check effect dependency arrays
+- Investigate stale closures and referential equality
+
+---
+
+## 11. Chrome MCP Server for Browser Debugging
+
+### Overview
+
+The Chrome MCP server provides powerful browser automation and debugging capabilities. Use it when debugging web UI issues, testing user interactions, capturing page states, or analyzing runtime behavior.
+
+### 11.1 When to Use Chrome MCP Server
+
+**Use Chrome MCP server for:**
+- Visual debugging of UI components and layouts
+- Testing user interaction flows such as clicks, form fills, navigation
+- Capturing page states at specific points
+- Analyzing network requests and responses
+- Inspecting console errors and warnings
+- Performance profiling and optimization
+- Testing responsive design at different viewport sizes
+- Debugging JavaScript execution in the browser
+- Verifying page content and DOM structure
+- Testing under different network or CPU conditions
+
+### 11.2 Available Chrome MCP Commands
+
+- Page management such as listing, selecting, creating, closing, navigating, resizing
+- Page inspection such as screenshots, snapshots, console messages, and network requests
+- User interaction such as clicking, hovering, filling inputs and forms, dragging, uploading files, handling dialogs
+- Advanced operations such as executing scripts, waiting for text, emulating network or CPU, starting and stopping performance traces, analyzing insights
+
+### 11.3 Chrome MCP Debugging Workflow
+
+Typical steps:
+1. List and select the target page
+2. Navigate to the target URL
+3. Take a text snapshot to capture element identifiers
+4. Check console messages for errors and warnings
+5. Inspect network requests, highlighting failures and slow calls
+6. Capture screenshots of relevant states
+7. Exercise critical user interactions and verify outcomes
+
+### 11.4 Common Chrome MCP Debugging Patterns
+
+- Visual regression testing by comparing pre and post change screenshots
+- Network error debugging by extracting failed request details for analysis
+- Console error investigation by categorizing errors and warnings and capturing evidence
+- Form interaction testing by filling fields, submitting, and verifying success states
+- Performance profiling using traces and targeted insight analysis
+- Responsive design testing across mobile, tablet, and desktop viewports
+- Network condition testing such as Slow 3G, Fast 3G, Offline and measuring load impact
+
+### 11.5 Chrome MCP Best Practices
+
+**DO:**
+- Take snapshots before screenshots to get element identifiers
+- Use descriptive filenames with timestamps for artifacts
+- Save screenshots to debuging/images/ and text artifacts to debuging/scratch/
+- Check console messages after each major interaction
+- Use appropriate timeouts
+- Clean up artifacts when finished
+- Capture full page screenshots when layout matters
+- Test under different network and CPU conditions
+- Combine console, network, and screenshots for a complete picture
+
+**DON'T:**
+- Take screenshots without element context
+- Ignore console warnings
+- Forget to reset emulation settings
+- Use timeouts that are too short
+- Commit debugging artifacts
+- Capture sensitive data such as passwords, API keys, PII
+- Run excessively long performance traces
+- Forget to handle blocking dialogs
+
+### 11.6 AI Agent Chrome MCP Usage Rules
+
+- Start by listing pages
+- Take a snapshot first to learn element identifiers
+- Check console immediately after navigation and interactions
+- Inspect and archive network failures
+- Save artifacts in the correct folders with descriptive names
+- Capture screenshots at key steps
+- Clean up when done
+- Document findings in @scratch/ with concise summaries
+- Combine methods rather than relying on a single signal
+
+### 11.7 When NOT to Use Chrome MCP Server
+
+- Server side debugging, use logging instead
+- API endpoint testing, use curl, Postman, or automated tests
+- Database debugging, use database tools
+- Non browser JavaScript such as Node.js code
+- Issues solvable with simple server or client logs
+- Production debugging, avoid for security and performance reasons
+
+Use Chrome MCP specifically for browser related issues where visual inspection, DOM interaction, or runtime browser behavior is relevant.
+
+---
+
+## 12. Production Debugging
+
+### 12.1 Production Log Levels
+
+**Use appropriate levels:**
+- error: production errors that need immediate attention
+- warn: production warnings that should be reviewed
+- info: important production events such as startup, shutdown, major operations
+- debug: development only; set log level to info in production
+
+### 12.2 Sensitive Data
+
+**NEVER log sensitive data:**
+- Avoid logging secrets, credentials, API keys, tokens, or PII
+- Log presence flags instead of actual values
+- Redact where necessary
+
+---
+
+## 13. Quick Reference: Debugging Workflow
+
+**When debugging ANY issue:**
+
+1. Reproduce: ensure a consistent reproduction path
+2. Isolate: narrow down the failing area
+3. Log: add targeted debug logging around the problem
+4. Run: execute and inspect /log/app.log
+5. Analyze: interpret the structured logs
+6. Fix: implement a solution informed by evidence
+7. Verify: confirm the fix under the same conditions
+8. Clean: remove or reduce excessive debug logging
+
+**Tools to use:**
+- Server logs in terminal output and /log/app.log
+- Client logs in browser DevTools console
+- Chrome MCP Server for visual UI debugging, interaction testing, and automation
+- Network inspection via DevTools or MCP network listing
+- React DevTools to inspect component props and state
+- TypeScript build to surface type errors
+- Linter to enforce code quality rules
+
+

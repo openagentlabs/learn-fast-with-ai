@@ -1,0 +1,351 @@
+---
+globs: **/*.ts,**/*.tsx,**/*.d.ts,**/*.mts,**/*.cts
+alwaysApply: false
+---
+# TypeScript Rules for AI Agent
+
+## 📋 Quick Reference
+
+**CRITICAL: Read and follow ALL rules when generating TypeScript code.**
+
+### AI Agent MUST:
+1. ✅ Use correct naming conventions (PascalCase classes, camelCase vars/functions, UPPER_SNAKE_CASE constants)
+2. ✅ Organize class members: private vars → constructor → static methods → public methods → private methods
+3. ✅ Create static `create()` factory methods for all classes
+4. ✅ Add JSDoc comments to all public methods
+5. ✅ Write simple, readable, maintainable code
+6. ✅ Use proper TypeScript types (no `any` unless necessary)
+7. ✅ Use interfaces and types for complex data structures
+8. ✅ Use generics where appropriate for reusable code
+9. ✅ Validate inputs/outputs with proper types
+10. ✅ Use const assertions and readonly modifiers where appropriate
+
+### AI Agent MUST NOT:
+1. ❌ Mix naming conventions
+2. ❌ Create classes without static `create()` methods
+3. ❌ Mix public and private methods in class organization
+4. ❌ Use `any` type (use `unknown` or proper types instead)
+5. ❌ Create complex, hard-to-read code
+6. ❌ Skip JSDoc comments for public methods
+7. ❌ Use `@ts-ignore` or `@ts-expect-error` without justification
+8. ❌ Skip input/output validation with proper types
+9. ❌ Create classes without proper TypeScript features (generics, interfaces, etc.)
+
+---
+
+## Naming Conventions
+
+### File Naming
+
+| Type | Format | Example |
+|------|--------|---------|
+| Classes | `PascalCase.ts` | `AppConfig.ts`, `Logger.ts` |
+| Services | `[ServiceName]Service.ts` | `TerraformService.ts`, `AIService.ts` |
+| Enums | `PascalCase.ts` | `UserRole.ts`, `CloudProvider.ts` |
+| Interfaces/Types | `PascalCase.ts` or `types.ts` | `types.ts`, `ApiResponse.ts` |
+| Utils | `camelCase.ts` | `utils.ts`, `helpers.ts` |
+| Constants | `lowercase.ts` or `camelCase.ts` | `constants.ts`, `config.ts` |
+| Exports | `index.ts` | Always lowercase |
+
+### Variable Naming
+
+| Type | Format | Example |
+|------|--------|---------|
+| Local variables | `camelCase` | `userName`, `isAuthenticated`, `totalPrice` |
+| Boolean variables | `is/has/should/can/will + camelCase` | `isLoading`, `hasPermission`, `shouldRender` |
+| Constants | `UPPER_SNAKE_CASE` | `MAX_RETRY_ATTEMPTS`, `API_TIMEOUT_MS` |
+| Config objects | `camelCase` | `apiConfig`, `projectConfig` |
+| Arrays | `camelCase` plural | `users`, `projectList`, `errorMessages` |
+| Private properties | `camelCase` with optional `_` or `#` | `_cache`, `#privateData` |
+| Public properties | `camelCase` | `maxRetries`, `isInitialized` |
+
+### Function/Method Naming
+
+| Type | Format | Example |
+|------|--------|---------|
+| Regular functions | `camelCase` with verb | `calculateTotalPrice()`, `validateUserInput()` |
+| Public methods | `camelCase` with verb + JSDoc | `createUser()`, `getUserById()` |
+| Private methods | `camelCase` with verb | `callAIService()`, `validateConfiguration()` |
+| Factory methods | `create` or `getInstance` | `create()`, `getInstance()` |
+| Boolean functions | `is/has/should/can + camelCase` | `isValidEmail()`, `hasPermission()` |
+| Event handlers | `handle[EventName]` or `on[EventName]` | `handleClick()`, `onUserLogin()` |
+| Async functions | `async` + `Promise<T>` return | `async fetchUserData(): Promise<User>` |
+
+### Class Naming
+
+| Type | Format | Example |
+|------|--------|---------|
+| Regular classes | `PascalCase` singular | `User`, `AppConfig`, `Logger` |
+| Service classes | `[DomainName]Service` | `TerraformService`, `AIService` |
+| Generic classes | `PascalCase<T>` | `Repository<T>`, `Service<T>` |
+
+**Class Member Organization (MANDATORY):**
+1. Private variables (at top)
+2. Constructor
+3. Static factory methods
+4. Public methods (all together)
+5. Private methods (at bottom)
+
+### Interface/Type Naming
+
+| Type | Format | Example |
+|------|--------|---------|
+| Interfaces | `PascalCase` (no `I` prefix) | `User`, `ServiceConfig`, `ApiResponse<T>` |
+| Type aliases | `PascalCase` | `UserId`, `CloudProvider`, `ApiHandler` |
+| Generic params | Single uppercase or `PascalCase` | `T`, `K`, `V`, `TData` |
+
+### Enum Naming
+
+| Type | Format | Example |
+|------|--------|---------|
+| Enum names | `PascalCase` singular | `UserRole`, `HttpStatus`, `CloudProvider` |
+| Enum members | `PascalCase` | `Active`, `Inactive`, `Pending` |
+
+### Import/Export Naming
+
+**Named Exports (Preferred):**
+```typescript
+export { logger } from './Logger';
+export { appConfig } from './AppConfig';
+export type { ServiceConfig } from './types';
+```
+
+**Import Aliases:**
+```typescript
+import { logger as appLogger } from '@/lib/logging';
+import { Button as UIButton } from '@/components/Button';
+```
+
+**Type-Only Imports:**
+```typescript
+import type { User } from './types';
+import type { ComponentProps } from 'react';
+```
+
+---
+
+## ⚙️ Mandatory Class Creation Rules
+
+### Rule 1: Static Factory Method (REQUIRED)
+
+**AI Agent MUST create a static `create()` method for every class.**
+
+```typescript
+class UserService {
+  constructor(config?: ServiceConfig) {
+    // ...
+  }
+  
+  // MANDATORY: Static create method
+  public static create(config?: ServiceConfig): UserService {
+    return new UserService(config);
+  }
+}
+```
+
+### Rule 2: JSDoc Documentation for Public Methods (REQUIRED)
+
+**AI Agent MUST add JSDoc comments to ALL public class methods.**
+
+```typescript
+/**
+ * Creates a new user in the database
+ * @param userData User data to create
+ * @returns Created user object
+ * @throws Error if user already exists or validation fails
+ */
+public async createUser(userData: UserData): Promise<User> {
+  // Implementation...
+}
+```
+
+---
+
+## 🔐 Type Safety Rules
+
+### Use Proper Types
+
+**ALWAYS:**
+- Use specific types over `any`
+- Use `unknown` for truly unknown data before validation
+- Use `never` for functions that never return
+- Use `void` for functions that return nothing
+- Use `readonly` for immutable data
+- Use `const` assertions for literal types
+
+```typescript
+// Good
+function processData(data: unknown): ProcessedData {
+  if (isValidData(data)) {
+    return transform(data);
+  }
+  throw new Error('Invalid data');
+}
+
+// Bad
+function processData(data: any): any {
+  return data;
+}
+```
+
+### Avoid Type Assertions
+
+**Prefer type guards over type assertions:**
+
+```typescript
+// Good
+function isUser(value: unknown): value is User {
+  return typeof value === 'object' && value !== null && 'id' in value;
+}
+
+if (isUser(data)) {
+  console.log(data.name); // Type-safe
+}
+
+// Bad
+const user = data as User; // Dangerous
+```
+
+### Use Generics Appropriately
+
+**Create reusable, type-safe functions:**
+
+```typescript
+// Good
+function getById<T>(id: string, items: T[]): T | undefined {
+  return items.find(item => item.id === id);
+}
+
+// Bad
+function getById(id: string, items: any[]): any {
+  return items.find(item => item.id === id);
+}
+```
+
+### Use Optional and Readonly Modifiers
+
+```typescript
+// Good
+interface User {
+  readonly id: string;
+  name: string;
+  email?: string; // Optional
+  readonly createdAt: Date;
+}
+
+class UserRepository {
+  private readonly users: readonly User[] = [];
+}
+```
+
+---
+
+## 📝 Code Quality Standards
+
+### 1. Simplicity First
+
+**ALWAYS follow these principles:**
+- Use the simplest solution that solves the problem effectively
+- Avoid over-engineering or premature optimization
+- Break complex logic into smaller, understandable functions
+- Choose clarity over cleverness
+
+### 2. Human Readability
+
+**Make code readable by:**
+- Using descriptive variable and function names
+- Adding meaningful comments for complex logic
+- Formatting code consistently with proper spacing
+- Keeping functions small and focused (ideally < 50 lines)
+- Using early returns to reduce nesting
+- Avoiding deeply nested conditionals (max 3 levels)
+
+### 3. Maintainability
+
+**Ensure code is maintainable by:**
+- Using constants for magic numbers and repeated values
+- Extracting configuration to dedicated files/objects
+- Creating reusable utility functions
+- Following consistent patterns across the codebase
+- Adding comprehensive documentation
+- Using proper TypeScript features (enums, interfaces, types)
+
+### 4. Use Constants (Don't Hide Important Data)
+
+**ALWAYS make important values accessible:**
+- Define constants at the top of files or in dedicated config files
+- Use UPPER_SNAKE_CASE for true constants
+- Group related constants in objects or enums
+- Export constants that might be needed elsewhere
+- Document what each constant represents
+
+### 5. Balancing Readability and Performance
+
+**Guidelines:**
+- Default to readability - optimize only when performance issues are proven
+- Profile before optimizing - use data to guide optimization decisions
+- Document performance-critical code - explain why optimization was needed
+- Keep optimized code isolated - don't let it spread through the codebase
+- Add comments when sacrificing readability - explain the tradeoff
+
+---
+
+## 🎯 TypeScript Best Practices
+
+### Use Enums for Constants
+
+```typescript
+// Good
+enum HttpStatus {
+  Ok = 200,
+  NotFound = 404,
+  ServerError = 500,
+}
+
+// Avoid magic numbers in code
+if (response.status === HttpStatus.Ok) {
+  // ...
+}
+```
+
+### Use Discriminated Unions
+
+```typescript
+type Result<T> =
+  | { success: true; data: T }
+  | { success: false; error: string };
+
+function process<T>(fn: () => T): Result<T> {
+  try {
+    return { success: true, data: fn() };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
+}
+```
+
+### Use Utility Types
+
+```typescript
+// Pick specific properties
+type UserPreview = Pick<User, 'id' | 'name'>;
+
+// Make properties optional
+type PartialUser = Partial<User>;
+
+// Make properties required
+type RequiredUser = Required<User>;
+
+// Omit properties
+type UserWithoutId = Omit<User, 'id'>;
+```
+
+### Use Template Literal Types
+
+```typescript
+type EventName = 'click' | 'hover' | 'focus';
+type HandlerName<T extends EventName> = `on${Capitalize<T>}`;
+// Result: "onClick" | "onHover" | "onFocus"
+```
+
+---

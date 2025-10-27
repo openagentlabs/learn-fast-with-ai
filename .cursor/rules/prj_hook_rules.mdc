@@ -1,0 +1,170 @@
+---
+alwaysApply: true
+---
+
+## Hook Rules
+
+### Overview
+Hooks are lifecycle functions that are called when specific events occur in the application. They provide a centralized way to execute code at important application lifecycle points without cluttering the main application logic.
+
+### Hook Location
+- All hooks are located in: `/home/keith/Dev/TerraChatWeb/src/hooks/`
+- Each hook is a separate TypeScript file following the naming pattern: `[event_name]_hook.ts`
+- Example: `app_start_hook.ts`, `user_login_hook.ts`, `before_deploy_hook.ts`
+
+### Hook Architecture Pattern
+
+#### Standard Hook Structure:
+```typescript
+import { logger } from '@/lib/logging';
+
+/**
+ * [Hook Name] - Description of when this hook is called
+ * 
+ * Purpose:
+ * - List the main purposes
+ * - What this hook should be used for
+ * 
+ * @param [parameters if any]
+ * @returns {void | Promise<void>}
+ */
+export function hookName(/* parameters */): void | Promise<void> {
+  const hookLogger = logger.child({ hook: 'hookName' });
+  
+  hookLogger.info('[Hook name] invoked');
+  
+  try {
+    // Hook implementation
+    
+    hookLogger.info('[Hook name] completed successfully');
+  } catch (error) {
+    hookLogger.error('[Hook name] failed', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    throw error;
+  }
+}
+```
+
+#### Hook Best Practices:
+1. **Always use logging**: Import and use `logger` from `@/lib/logging` with a child logger
+2. **Error handling**: Wrap hook logic in try-catch blocks
+3. **Documentation**: Document when the hook is called and what it should be used for
+4. **Keep focused**: Each hook should have a single, clear responsibility
+5. **Avoid blocking**: For long-running tasks, consider using async/await or queuing
+6. **Named exports**: Export hooks as named functions, not default exports
+
+### Available Hooks
+
+#### 1. App Start Hook (`app_start_hook.ts`)
+
+**Location**: `/home/keith/Dev/TerraChatWeb/src/hooks/app_start_hook.ts`
+
+**When Called**: 
+- Automatically invoked when the Next.js application initializes
+- Called from `src/app/layout.tsx` at the top level
+- Runs on the server side during application bootstrap
+- Executes once per application server start
+
+**Purpose**:
+- Initialize application-wide services and configurations
+- Perform startup validations (config, environment, dependencies)
+- Set up global state or singleton instances
+- Log application startup events
+- Verify required environment variables and API keys
+- Initialize external service connections
+- Run health checks on startup
+
+**When to Use**:
+- When you need to execute code once at application startup
+- For initializing services that should be ready before any requests
+- For validating critical configuration before serving requests
+- For logging startup metrics and environment information
+
+**When NOT to Use**:
+- For request-specific logic (use middleware or API route handlers)
+- For user-specific initialization (use authentication hooks)
+- For lazy-loaded features (initialize on-demand instead)
+- For client-side only logic (use React useEffect)
+
+**Example Usage in Code**:
+```typescript
+// Already implemented in src/app/layout.tsx
+import { appStartHook } from "@/hooks/app_start_hook";
+
+// Called at module load time
+appStartHook();
+```
+
+**Adding Custom Startup Logic**:
+To add custom initialization logic at startup, edit `app_start_hook.ts`:
+
+```typescript
+export function appStartHook(): void {
+  const hookLogger = logger.child({ hook: 'appStartHook' });
+  
+  hookLogger.info('Application startup hook invoked');
+  
+  try {
+    // Example: Validate configuration
+    if (!appConfig.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured');
+    }
+    
+    // Example: Initialize service
+    MyService.initialize();
+    
+    // Example: Verify external service connectivity
+    await checkExternalServiceHealth();
+    
+    hookLogger.info('Application initialized successfully');
+  } catch (error) {
+    hookLogger.error('Application startup hook failed', {
+      error: error instanceof Error ? error.message : String(error)
+    });
+    throw error;
+  }
+}
+```
+
+### Future Hooks (To Be Implemented)
+
+The following hooks are planned for future implementation:
+
+- **`user_login_hook.ts`**: Called when a user logs in successfully
+- **`user_logout_hook.ts`**: Called when a user logs out
+- **`before_terraform_generate_hook.ts`**: Called before generating Terraform code
+- **`after_terraform_generate_hook.ts`**: Called after Terraform code is generated
+- **`error_handler_hook.ts`**: Called when unhandled errors occur
+- **`before_api_request_hook.ts`**: Called before external API requests
+- **`after_api_request_hook.ts`**: Called after external API requests complete
+- **`session_start_hook.ts`**: Called when a user session starts
+- **`session_end_hook.ts`**: Called when a user session ends
+
+### Creating New Hooks
+
+When creating a new hook:
+
+1. **Create the hook file** in `src/hooks/[event_name]_hook.ts`
+2. **Follow the standard hook structure** (see above)
+3. **Add comprehensive documentation** explaining when and how to use it
+4. **Implement proper logging** with child logger
+5. **Add error handling** with try-catch blocks
+6. **Export as named function** for clarity
+7. **Update this documentation** to list the new hook
+8. **Call the hook** from the appropriate location in the codebase
+9. **Write tests** for the hook in `src/hooks/tests/[event_name]_hook.test.ts`
+
+### AI Agent Code Generation Rules for Hooks
+
+When the AI agent needs to add startup initialization logic:
+
+1. **Use existing hooks first**: If `app_start_hook.ts` exists, add code there
+2. **Don't create redundant hooks**: Check if a hook already exists for the event
+3. **Follow naming conventions**: Use `[event_name]_hook.ts` pattern
+4. **Add to appropriate location**: Place hook calls in the right lifecycle point
+5. **Import pattern**: Always use `import { hookName } from '@/hooks/hook_file';`
+6. **Document clearly**: Add comments explaining why the hook is being called
+7. **Log all actions**: Use the logging system within hooks
+8. **Handle errors gracefully**: Don't let hook failures crash the application unless critical

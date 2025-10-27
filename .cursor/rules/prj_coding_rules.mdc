@@ -1,0 +1,155 @@
+---
+alwaysApply: true
+---
+
+# Coding Rules for AI Agent
+
+## 📋 Quick Reference
+
+**CRITICAL: Read and follow ALL rules when generating code.**
+
+### AI Agent MUST:
+1. ✅ Log ALL code changes to `debuging/code_development_history.md` with UUID, file paths, line numbers
+2. ✅ Create static factory methods for all classes
+3. ✅ Add documentation comments to all public methods
+4. ✅ Write simple, readable, maintainable code
+5. ✅ Add UUID comments to all code blocks created or modified
+
+### AI Agent MUST NOT:
+1. ❌ Skip logging code changes - MANDATORY for EVERY code change
+2. ❌ Create classes without static factory methods
+3. ❌ Use magic numbers
+4. ❌ Create complex, hard-to-read code
+5. ❌ Create or modify code without UUID comments
+
+---
+
+## 🚨 CRITICAL: Development History Logging (MANDATORY)
+
+**⚠️ BEFORE YOU START ANY CODE WORK - READ THIS FIRST ⚠️**
+
+**EVERY SINGLE CODE CHANGE MUST BE LOGGED to `debuging/code_development_history.md`**
+
+### The Rule:
+After completing ANY task that involves code changes, you MUST:
+1. Generate a UUID for this change set
+2. Add UUID comments to each modified code block
+3. Track file paths and line numbers of all modified blocks
+4. Log to `debuging/code_development_history.md` with: UUID, DateTime, User Request, Actions Completed, Code Blocks Modified
+
+### This is ALWAYS the LAST step - nothing happens after logging!
+
+**NO EXCEPTIONS. NO SKIPPING. THIS IS MANDATORY FOR EVERY CODE CHANGE.**
+
+---
+
+## ⚙️ Mandatory Class Creation Rules
+
+### Rule 1: Static Factory Method (REQUIRED)
+
+**AI Agent MUST create a static factory method for every class.**
+
+## 🔖 Mandatory: UUID Comments for Code Change Tracking
+
+**Every code block that is created, modified, or updated MUST have a UUID comment that links it to the development history entry.**
+
+### UUID Comment Format
+
+```
+# UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+# [Brief description of what this block does]
+```
+
+### Rules (MANDATORY)
+
+1. **Placement**: UUID comment must be on the line immediately before the code block
+2. **Format**: Use single-line comment format (`#` or `//`) for all languages
+3. **Description**: Include brief description of what the block does
+4. **Matching**: UUID must match the UUID in the history entry
+5. **Multiple Blocks**: If multiple blocks in same file, each block gets its own UUID comment
+6. **Consistency**: Use same UUID for all blocks modified in the same change set
+
+### Code Block Definition
+
+A "code block" is: Class definition, Function definition, Interface/Type definition, Component definition, Configuration object, Test suite
+
+### When to Add UUID Comments
+
+**ALWAYS add UUID comments when:**
+- Creating new files
+- Adding new classes, functions, components
+- Modifying existing code blocks
+- Refactoring code blocks
+- Fixing bugs in code blocks
+
+**UUID comments are NOT needed for:**
+- Import statements
+- Single-line variable declarations
+- Simple return statements
+- Comments (unless modifying a comment block)
+
+### Linking to Development History
+
+**The UUID in the code comment MUST match the UUID in the history entry:**
+
+**In history entry:**
+```markdown
+**UUID:** a1b2c3d4-e5f6-7890-abcd-ef1234567890
+**DateTime:** 2025-10-16 14:23:45
+**User Request:** Create UserService for managing user operations
+**Actions Completed:** Created UserService class with CRUD operations
+**Code Blocks Modified:**
+- `src/services/user_service/UserService.py` (line 10) - UUID: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+```
+
+---
+
+## 📐 Mandatory: Code Simplicity, Readability, and Maintainability
+
+**Core Principle: Always prioritize simplicity, human readability, and maintainability in all code generation.**
+
+### 1. Simplicity First
+
+**ALWAYS follow these principles:**
+- Use the simplest solution that solves the problem effectively
+- Avoid over-engineering or premature optimization
+- Break complex logic into smaller, understandable functions
+- Choose clarity over cleverness
+
+### 2. Human Readability
+
+**Make code readable by:**
+- Using descriptive variable and function names
+- Adding meaningful comments for complex logic
+- Formatting code consistently with proper spacing
+- Keeping functions small and focused (ideally < 50 lines)
+- Using early returns to reduce nesting
+- Avoiding deeply nested conditionals (max 3 levels)
+
+### 3. Maintainability
+
+**Ensure code is maintainable by:**
+- Using constants for magic numbers and repeated values
+- Extracting configuration to dedicated files/objects
+- Creating reusable utility functions
+- Following consistent patterns across the codebase
+
+### 4. Use Constants (Don't Hide Important Data)
+
+**ALWAYS make important values accessible:**
+- Define constants at the top of files or in dedicated config files
+- Use UPPER_SNAKE_CASE for true constants
+- Group related constants in objects or enums
+- Export constants that might be needed elsewhere
+- Document what each constant represents
+
+### 5. Balancing Readability and Performance
+
+**Guidelines:**
+- Default to readability - optimize only when performance issues are proven
+- Profile before optimizing - use data to guide optimization decisions
+- Document performance-critical code - explain why optimization was needed
+- Keep optimized code isolated - don't let it spread through the codebase
+- Add comments when sacrificing readability - explain the tradeoff
+
+---

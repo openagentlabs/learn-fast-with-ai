@@ -1,0 +1,53 @@
+---
+alwaysApply: true
+---
+
+## Configuration
+
+#### Overview
+- The web application uses the DotEnv library with a custom singleton class called `AppConfig`
+- AppConfig loads configuration from the `.env` file at the project root when the application starts
+- The AppConfig and related configuration code is located at: `src/lib/config/`
+
+#### When to Use AppConfig
+
+**Always Use AppConfig For:**
+- API keys and secrets (never hardcode these)
+- Environment-specific settings (development vs. production)
+- External service endpoints and URLs
+- Feature flags and toggles
+- Database connection strings
+- Third-party service configurations
+- Any value that differs between environments
+
+**Examples of When to Use:**
+- Making API calls to external services (use API keys from config)
+- Connecting to databases (use connection strings from config)
+- Enabling/disabling features based on environment
+- Configuring service endpoints
+- Setting up authentication providers
+
+#### Current Configuration Parameters
+
+- `GEMINI_API_KEY`: API key for Google Gemini AI service
+
+#### Best Practices
+
+1. **Never hardcode secrets** - Always use AppConfig for API keys and sensitive data
+2. **Use descriptive names** - Configuration parameter names should be clear and in UPPER_SNAKE_CASE
+3. **Provide defaults** - Use the `|| ''` pattern to provide default values
+4. **Document parameters** - Add comments in AppConfig class for each parameter
+5. **Validate early** - Check `appConfig.isValid()` at application startup
+6. **Type safety** - Define appropriate types for config values (string, number, boolean)
+
+#### AppConfig Architecture
+
+- **Pattern**: Singleton pattern ensures only one instance exists
+- **Location**: `src/lib/config/AppConfig.ts`
+- **Export**: Pre-instantiated singleton exported as `appConfig`
+- **Methods**:
+  - `getInstance()`: Get singleton instance (usually not needed, use exported `appConfig`)
+  - `loadConfig()`: Internal method that loads from .env
+  - `reload()`: Reload configuration from .env file
+  - `getAll()`: Get all configuration as an object
+  - `isValid()`: Check if configuration loaded successfully  

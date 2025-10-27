@@ -2,6 +2,211 @@
 
 ## Development Entry
 
+**UUID:** a9b8c7d6-e5f4-3210-9876-543210fedcba
+**DateTime:** 2025-01-27 22:15:00
+
+**User Request:** 
+Add available tools knowledge to prj_general_rules.mdc by way of a concise tools section listing tools available (GCP gcloud, GitHub CLI gh, Terraform, and Docker CLI).
+
+**Actions Completed:**
+- Added "Available Tools" section to Table of Contents (item 15)
+- Created new "Available Tools" section after table of contents
+- Listed GCP gcloud CLI as installed and available for GCP operations, Cloud Run deployments, and project management
+- Listed Terraform as installed and ready to use for infrastructure provisioning, configuration management, and infrastructure as code
+- Listed Docker CLI as installed and ready to use for containerization, image building, container management, and local development environments
+- Listed GitHub CLI (gh) as installed and ready to use for GitHub operations, PR management, and repository interactions
+- Organized tools into "Cloud & Infrastructure" and "Version Control" categories
+
+**Code Blocks Modified:**
+- `.cursor/rules/prj_general_rules.mdc` (lines 31-44) - UUID: a9b8c7d6-e5f4-3210-9876-543210fedcba
+  - Added Available Tools to Table of Contents
+  - Created new Available Tools section with Cloud & Infrastructure and Version Control subsections
+  - Added GCP gcloud CLI, Terraform, Docker CLI, and GitHub CLI to the tools list
+
+**Technical Details:**
+- GCP gcloud CLI installed and configured for use
+- Terraform installed and configured for use
+- Docker CLI installed and configured for use
+- GitHub CLI (gh) installed and configured for use
+- All tools ready for AI agent utilization in development workflows
+
+---
+
+## Development Entry
+
+**UUID:** f1a2b3c4-5678-9012-3456-7890abcdef12
+**DateTime:** 2025-01-27 21:30:00
+
+**User Request:** 
+Modify prj_infrastructure_rules.mdc to create infrastructure rules for final deployment to GCP Cloud Run, including rules and knowledge sections based on GitHub Actions deployment pipeline (.github/workflows/deploy.yml) and Cloud Build configuration (cloudbuild.yaml).
+
+**Actions Completed:**
+- Completely rewrote prj_infrastructure_rules.mdc with GCP Cloud Run infrastructure rules
+- Added comprehensive Infrastructure Knowledge section covering:
+  - Deployment Architecture details
+  - GitHub Actions Workflow configuration and steps
+  - Cloud Build configuration and build process
+  - Docker multi-stage build process and security features
+  - Cloud Run service characteristics
+- Created 10 AI Agent Infrastructure Rules covering:
+  - Environment variables and secrets management
+  - Container build and optimization
+  - Database persistence strategies
+  - Deployment configuration best practices
+  - GitHub Actions workflow requirements
+  - Cloud Build configuration standards
+  - Health checks and monitoring
+  - Scaling and performance considerations
+  - Security best practices
+  - Rollback and recovery procedures
+- Added deployment workflow summary with trigger, build, and deployment processes
+- Included important notes for AI Agent when modifying infrastructure files
+- Added common pitfalls to avoid section
+- Documented related documentation references
+
+**Code Blocks Modified:**
+- `.cursor/rules/prj_infrastructure_rules.mdc` (complete rewrite, line 1-299) - UUID: f1a2b3c4-5678-9012-3456-7890abcdef12
+
+**Technical Details:**
+- File completely rewritten with GCP Cloud Run specific infrastructure knowledge
+- Analyzed deploy.yml workflow file to understand GitHub Actions pipeline
+- Analyzed cloudbuild.yaml to understand Cloud Build process
+- Analyzed Dockerfile to document multi-stage build process
+- Key configuration variables documented:
+  - PROJECT_ID: keithtest001
+  - SERVICE_NAME: learn-fast-with-ai
+  - REGION: europe-west2
+  - ARTIFACT_REPO: nextjs-containers
+- Deployment trigger: Push to main branch
+- Build system: GCP Cloud Build with Artifact Registry
+- Runtime: Cloud Run serverless platform
+
+**Files Modified:**
+- `.cursor/rules/prj_infrastructure_rules.mdc` (complete rewrite)
+
+**Infrastructure Knowledge Added:**
+- GitHub Actions workflow steps (checkout, authenticate, setup, build, deploy)
+- Cloud Build image tagging with full commit SHA
+- Docker multi-stage build (base, deps, builder, runner)
+- Cloud Run characteristics (serverless, auto-scaling, public access)
+- Health check configuration and monitoring
+
+**Rules Added:**
+1. Environment Variables and Secrets
+2. Container Build and Optimization
+3. Database Persistence
+4. Deployment Configuration
+5. GitHub Actions Workflow
+6. Cloud Build Configuration
+7. Health Checks and Monitoring
+8. Scaling and Performance
+9. Security Best Practices
+10. Rollback and Recovery
+
+**Deployment Flow Documented:**
+- Trigger → Build Process → Deployment Process → Monitoring
+- Detailed step-by-step workflow from GitHub push to Cloud Run deployment
+
+---
+
+## Development Entry
+
+**UUID:** c9d0e1f2-3456-7890-abcd-ef0123456789
+**DateTime:** 2025-01-27 21:00:00
+
+**User Request:** 
+Modify prj_general_rules.mdc by taking the content from learn_fast_with_ai_rules.mdc and merging it, replacing parts.
+
+**Actions Completed:**
+- Merged content from learn_fast_with_ai_rules.mdc into prj_general_rules.mdc
+- Replaced project title from "TerraChatWeb" to "Learn Fast with AI"
+- Removed duplicate markdown code block formatting
+- Fixed file structure to have proper frontmatter without nested markdown blocks
+- Maintained all core rules and sections from the Learn Fast with AI rules
+
+**Code Blocks Modified:**
+- `.cursor/rules/prj_general_rules.mdc` (line 1-119) - UUID: d0e1f2a3-4567-8901-bcde-f01234567890
+
+**Technical Details:**
+- Updated prj_general_rules.mdc to use Learn Fast with AI project name and context
+- Removed incorrect nested markdown code block (```markdown)
+- Fixed frontmatter structure to match proper format
+- Maintained all 14 sections from the rules template
+- Changed title from "TerraChatWeb - AI Agent Coding Rules" to "Learn Fast with AI - AI Agent Coding Rules"
+- All content now matches learn_fast_with_ai_rules.mdc exactly
+
+**Files Created:**
+- None
+
+**Files Modified:**
+- `.cursor/rules/prj_general_rules.mdc` (merged with Learn Fast with AI rules content)
+
+**Before:**
+- Had nested markdown code blocks
+- Title was "TerraChatWeb - AI Agent Coding Rules"
+- Duplicate frontmatter sections
+
+**After:**
+- Clean frontmatter structure
+- Title is "Learn Fast with AI - AI Agent Coding Rules"
+- Proper markdown formatting throughout
+- Content identical to learn_fast_with_ai_rules.mdc
+
+---
+
+# Code Development History
+
+## Development Entry
+
+**UUID:** a7f8e9d0-1234-5678-90ab-cdef01234567
+**DateTime:** 2025-01-27 20:45:00
+
+**User Request:** 
+Analyze TerraChatWeb prj_general_rules.mdc file and use it as a template to create a new project-specific AI coding rules file for "Learn Fast with AI" flashcard web application.
+
+**Actions Completed:**
+- Analyzed existing prj_general_rules.mdc template from TerraChatWeb project
+- Created new learn_fast_with_ai_rules.mdc file tailored for the Learn Fast with AI project
+- Adapted the template to match project naming and context
+- Fixed file formatting issues (removed duplicate frontmatter)
+- Logged the change in development history
+
+**Code Blocks Modified:**
+- `.cursor/rules/learn_fast_with_ai_rules.mdc` (line 1) - UUID: b8c9d0e1-2345-6789-0abc-def123456789
+
+**Technical Details:**
+- Created project-specific AI agent coding rules based on TerraChatWeb template
+- Maintained all core rules: documentation, development history, code quality, TypeScript conventions
+- Adapted project name throughout the file
+- Kept the same structure and sections as the original template
+- File location: `.cursor/rules/learn_fast_with_ai_rules.mdc`
+- File is marked as `alwaysApply: true` for automatic application
+
+**Files Created:**
+- `.cursor/rules/learn_fast_with_ai_rules.mdc` (project-specific AI coding rules)
+
+**Files Modified:**
+- None
+
+**Project Context:**
+- Project Name: Learn Fast with AI
+- Description: Advanced AI flashcard-enabled web application
+- Technology Stack: Next.js 15, TypeScript, Tailwind CSS v4, React 19
+- AI Features: Flashcard generation, smart scheduling, personalized learning
+- Based on TerraChatWeb patterns and conventions
+
+**Rules Categories Applied:**
+- Core Rules (documentation, development history, code quality)
+- Architecture Patterns (dependency injection, TypeScript conventions)
+- Code Generation Standards (simplicity, readability, SRP)
+- Web Application Design (page structure, components)
+
+---
+
+# Code Development History
+
+## Development Entry
+
 **UUID:** f9a8b7c6-d5e4-3210-9876-543210fedcba
 **DateTime:** 2025-01-27 23:45:00
 

@@ -1,0 +1,362 @@
+
+# Infrastructure rules for final deployment to GCP Cloud Run
+
+## Overview
+This document defines the infrastructure rules and knowledge for deploying the Learn Fast with AI application to Google Cloud Platform (GCP) Cloud Run using GitHub Actions and GCP Cloud Build.
+
+---
+
+## 📚 Infrastructure Knowledge
+
+### Key Tools Available
+- **GitHub CLI**: `gh` command available - use `gh run watch`, `gh run list`
+- **Google Cloud SDK**: `gcloud` command available - use for GCP operations
+
+### Deployment Architecture
+- **Final Destination**: Google Cloud Platform (GCP) Cloud Run (serverless container platform)
+- **Source Control**: GitHub (main repository)
+- **CI/CD Pipeline**: GitHub Actions (`.github/workflows/deploy.yml`)
+- **Build System**: GCP Cloud Build (via `cloudbuild.yaml`)
+- **Container Registry**: GCP Artifact Registry
+- **Container Engine**: Docker (multi-stage build in `docker/Dockerfile`)
+
+### GCP Resource Locations
+- **Project ID**: `keithtest001`
+- **Region**: `europe-west2`
+- **Artifact Registry**: `europe-west2-docker.pkg.dev/keithtest001/nextjs-containers`
+- **Cloud Run Service**: `learn-fast-with-ai` in region `europe-west2`
+- **Cloud Run URL**: `https://learn-fast-with-ai-eupbowmhxa-nw.a.run.app`
+- **GitHub Repository**: `openagentlabs/learn-fast-with-ai`
+
+### Key Infrastructure Components
+
+#### 1. GitHub Actions Workflow (`.github/workflows/deploy.yml`)
+**Purpose**: Automated deployment pipeline triggered on push to `main` branch
+
+**Key Configuration Variables:**
+- `PROJECT_ID`: `keithtest001` (GCP project ID)
+- `SERVICE_NAME`: `learn-fast-with-ai` (Cloud Run service name)
+- `REGION`: `europe-west2` (GCP region for deployment)
+- `ARTIFACT_REPO`: `nextjs-containers` (Artifact Registry repository name)
+
+**Workflow Steps:**
+1. **Checkout Code**: Clone repository from GitHub
+2. **Authenticate to GCP**: Use service account key from GitHub secrets (`GCP_SA_KEY`)
+3. **Setup Cloud SDK**: Configure Docker authentication for Artifact Registry
+4. **Build and Push**: Submit build to Cloud Build, which:
+   - Builds Docker image using `docker/Dockerfile`
+   - Tags image with full commit SHA
+   - Pushes to Artifact Registry
+5. **Deploy to Cloud Run**: Deploy containerized application as serverless service
+   - Service is publicly accessible (`--allow-unauthenticated` flag)
+
+#### 2. Cloud Build Configuration (`cloudbuild.yaml`)
+**Purpose**: Defines the build steps executed by GCP Cloud Build
+
+**Build Steps:**
+1. **Build Image**: Use `gcr.io/cloud-builders/docker` to build from `docker/Dockerfile`
+   - Image tagged with: `${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REPO}/${SERVICE_NAME}:${SHORT_SHA}`
+2. **Push Image**: Push built image to Artifact Registry
+3. **Output**: Specify image location for deployment
+
+**Substitutions** (passed from GitHub Actions):
+- `_PROJECT_ID`: GCP project identifier
+- `_SERVICE_NAME`: Cloud Run service name
+- `_REGION`: GCP deployment region
+- `_ARTIFACT_REPO`: Artifact Registry repository
+- `SHORT_SHA`: Git commit hash for image versioning
+
+#### 3. Docker Build (`docker/Dockerfile`)
+**Purpose**: Multi-stage Docker build for optimized production image
+
+**Build Stages:**
+1. **Base**: Node.js 20 Alpine base image
+2. **Dependencies**: Install all npm dependencies (including dev dependencies)
+3. **Builder**: Build Next.js application (creates `.next` directory)
+4. **Runner**: Minimal production image with:
+   - Built application files
+   - Non-root user (`nextjs` with UID 1001)
+   - Health check endpoint
+   - Database persistence directory (`/app/data`)
+   - Port 3000 exposed
+   - Environment: `NODE_ENV=production`
+
+**Security Features:**
+- Non-root user execution
+- Minimal base image (Alpine Linux)
+- Multi-stage build for smaller final image
+- Health check for container monitoring
+
+#### 4. Cloud Run Service
+**Characteristics**:
+- Serverless: Auto-scales from zero to multiple instances
+- Pay-per-use: Only charged for request handling time
+- HTTP/2 and WebSocket support
+- Automatic SSL/TLS termination
+- Public access: Enabled via `--allow-unauthenticated` flag
+- Environment: Production mode (`NODE_ENV=production`)
+
+---
+
+## 🚨 AI Agent Infrastructure Rules
+
+### Rule 1: Environment Variables and Secrets
+**MANDATORY:**
+- ✅ All secrets stored in GitHub Secrets repository
+- ✅ Use `GCP_SA_KEY` secret for GCP authentication
+- ✅ Store environment-specific variables in Cloud Run service configuration
+- ✅ Never commit secrets or API keys to source control
+- ✅ Document all required environment variables in project documentation
+
+**NEVER:**
+- ❌ Hardcode secrets in Dockerfile or application code
+- ❌ Include sensitive data in GitHub repository
+- ❌ Store credentials in version control
+
+### Rule 2: Container Build and Optimization
+**MANDATORY:**
+- ✅ Use multi-stage Docker builds for optimal image size
+- ✅ Install production dependencies only in final image
+- ✅ Use Alpine Linux base images for minimal footprint
+- ✅ Run application as non-root user
+- ✅ Include health check in Dockerfile
+- ✅ Set appropriate port (3000) and hostname (0.0.0.0)
+
+**NEVER:**
+- ❌ Include development dependencies in production image
+- ❌ Run containerized application as root user
+- ❌ Forget to set proper environment variables
+- ❌ Omit health check endpoint
+
+### Rule 3: Database Persistence
+**MANDATORY:**
+- ✅ Create data directory in Dockerfile (`/app/data`)
+- ✅ Set proper file permissions for database files
+- ✅ Use Cloud Run volumes or external storage for production data
+- ✅ Plan for stateless container restarts
+
+**KNOWLEDGE:**
+- Cloud Run instances are stateless by default
+- Data in containers is ephemeral and lost on restart
+- Use external database or persistent volumes for production data
+- SQLite database at `/app/data/app.db` for local development
+
+### Rule 4: Deployment Configuration
+**MANDATORY:**
+- ✅ Tag Docker images with full commit SHA for versioning
+- ✅ Use Artifact Registry for container image storage
+- ✅ Deploy to Cloud Run with production configuration
+- ✅ Enable public access via `--allow-unauthenticated` for web applications
+- ✅ Monitor deployment status in GitHub Actions
+
+**NEVER:**
+- ❌ Deploy unoptimized or oversized Docker images
+- ❌ Skip container image versioning
+- ❌ Deploy without testing locally first
+
+### Rule 5: GitHub Actions Workflow
+**MANDATORY:**
+- ✅ Trigger deployment on push to `main` branch only
+- ✅ Use GCP service account credentials from secrets
+- ✅ Configure Cloud SDK before building Docker images
+- ✅ Export image tag for Cloud Run deployment
+- ✅ Include descriptive step names and error handling
+
+**NEVER:**
+- ❌ Trigger deployment from development branches
+- ❌ Expose credentials in workflow logs
+- ❌ Skip authentication steps
+
+### Rule 6: Cloud Build Configuration
+**MANDATORY:**
+- ✅ Define clear build steps in `cloudbuild.yaml`
+- ✅ Use Cloud Builders for Docker operations
+- ✅ Specify correct image tag format for Artifact Registry
+- ✅ Document substitution variables
+- ✅ Specify image output for deployment
+
+**NEVER:**
+- ❌ Hardcode values that should be substitution variables
+- ❌ Forget to specify image output in `images` section
+- ❌ Use deprecated Cloud Build features
+
+### Rule 7: Health Checks and Monitoring
+**MANDATORY:**
+- ✅ Include health check endpoint in application
+- ✅ Configure Docker HEALTHCHECK instruction
+- ✅ Monitor Cloud Run service health in GCP Console
+- ✅ Set up logging for production debugging
+- ✅ Configure alerts for service failures
+
+**KNOWLEDGE:**
+- Cloud Run automatically restarts unhealthy containers
+- Health check endpoint should return 200 status code
+- Logs available in Cloud Logging
+- Monitor request latency and error rates
+
+### Rule 8: Scaling and Performance
+**MANDATORY:**
+- ✅ Configure Cloud Run service for expected traffic
+- ✅ Set appropriate memory and CPU allocation
+- ✅ Implement caching strategies where applicable
+- ✅ Optimize Next.js build for production
+- ✅ Use CDN for static assets when needed
+
+**KNOWLEDGE:**
+- Cloud Run auto-scales from zero to maximum instances
+- Bill per request and resource usage (CPU/memory)
+- Cold start latency for first request after scale-to-zero
+- Configure concurrency per instance for efficiency
+
+### Rule 9: Security Best Practices
+**MANDATORY:**
+- ✅ Use least-privilege service account permissions
+- ✅ Enable IAM authentication for sensitive endpoints
+- ✅ Use HTTPS for all external communications
+- ✅ Implement rate limiting and request validation
+- ✅ Regular security audits of dependencies
+
+**NEVER:**
+- ❌ Expose sensitive endpoints without authentication
+- ❌ Use insecure default configurations
+- ❌ Skip security updates for dependencies
+
+### Rule 10: Rollback and Recovery
+**MANDATORY:**
+- ✅ Maintain previous container image versions in Artifact Registry
+- ✅ Document rollback procedures
+- ✅ Test rollback process periodically
+- ✅ Monitor deployment impact
+- ✅ Have backup deployment strategies
+
+**KNOWLEDGE:**
+- Previous container images retained in Artifact Registry
+- Can redeploy previous versions via Cloud Run revisions
+- Use revision tags for stable releases
+- Monitor rollback metrics and alerts
+
+---
+
+## 🔄 Deployment Workflow Summary
+
+### Trigger
+- Push to `main` branch → GitHub Actions workflow triggered
+
+### Build Process
+1. GitHub Actions clones repository
+2. Authenticates to GCP using service account key
+3. Submits build job to GCP Cloud Build
+4. Cloud Build executes `cloudbuild.yaml`:
+   - Builds Docker image using `docker/Dockerfile`
+   - Tags image with commit SHA
+   - Pushes to Artifact Registry
+5. Returns image location to GitHub Actions
+
+### Deployment Process
+1. GitHub Actions receives image location
+2. Calls Cloud Run deployment API
+3. Cloud Run:
+   - Pulls image from Artifact Registry
+   - Creates new revision with container
+   - Routes traffic to new revision
+   - Scales containers as needed
+4. Service becomes available at Cloud Run URL
+
+### Monitoring
+- Check GitHub Actions logs for deployment status
+- Monitor Cloud Run service in GCP Console
+- View container logs in Cloud Logging
+- Track metrics in Cloud Monitoring
+
+---
+
+## ⚠️ Important Notes for AI Agent
+
+### When Modifying Infrastructure Files
+**MANDATORY:**
+1. ✅ Test changes locally before pushing to `main`
+2. ✅ Update documentation when changing deployment configuration
+3. ✅ Verify environment variables are correctly configured
+4. ✅ Ensure Docker builds complete successfully
+5. ✅ Log all infrastructure changes to `debuging/code_development_history.md`
+
+**NEVER:**
+- ❌ Modify `.github/workflows/deploy.yml` without understanding impact
+- ❌ Change `cloudbuild.yaml` without testing build process
+- ❌ Update Dockerfile without verifying image builds
+- ❌ Deploy without reviewing all configuration files
+
+### Common Pitfalls to Avoid
+1. **Missing Environment Variables**: Ensure all required env vars are set in Cloud Run
+2. **Build Failures**: Check Dockerfile syntax and build logs
+3. **Image Size Issues**: Optimize Dockerfile to reduce image size
+4. **Permission Errors**: Verify service account has correct IAM roles
+5. **Database Connection**: Ensure database is accessible from Cloud Run
+
+---
+
+## 📖 Related Documentation
+
+- GitHub Actions: `.github/workflows/deploy.yml`
+- Cloud Build: `cloudbuild.yaml`
+- Docker Build: `docker/Dockerfile` and `docker/README.md`
+- Project README: `README.md` (deployment instructions)
+- GCP Documentation: Cloud Run, Cloud Build, Artifact Registry
+
+---
+
+## 🔄 End-to-End Deployment Process
+
+### Deployment Trigger
+- Push to `main` branch triggers automatic deployment
+- GitHub Actions workflow: `.github/workflows/deploy.yml`
+
+### Build Flow (Automatic)
+1. **GitHub Actions** receives push event
+2. Checks out source code
+3. Authenticates to GCP using `GCP_SA_KEY` secret
+4. Submits build to Cloud Build with `gcloud builds submit --config=cloudbuild.yaml`
+5. **Cloud Build** reads `cloudbuild.yaml`:
+   - Builds Docker image using `docker/Dockerfile`
+   - Multi-stage build: deps → builder → runner
+   - Tags image with commit SHA: `{SHORT_SHA}`
+   - Pushes to Artifact Registry
+6. Returns image location to GitHub Actions
+
+### Deployment Flow (Automatic)
+1. **GitHub Actions** receives built image location
+2. Deploys to Cloud Run using `google-github-actions/deploy-cloudrun`
+3. **Cloud Run** creates new revision with container
+4. Routes traffic to new revision
+5. Service available at Cloud Run URL
+
+### Verification Commands
+- **GitHub Actions**: `gh run list` and `gh run watch {run-id}`
+- **Cloud Build**: `gcloud builds list --project keithtest001`
+- **Artifact Registry**: `gcloud artifacts docker images list europe-west2-docker.pkg.dev/keithtest001/nextjs-containers/learn-fast-with-ai`
+- **Cloud Run**: `gcloud run services describe learn-fast-with-ai --region europe-west2`
+- **Cloud Run Logs**: `gcloud run services logs read learn-fast-with-ai --region europe-west2`
+
+### Key Files and Locations
+- Workflow: `.github/workflows/deploy.yml`
+- Build Config: `cloudbuild.yaml` (root directory)
+- Dockerfile: `docker/Dockerfile`
+- Build uses Next.js standalone output: `next.config.js` (output: 'standalone')
+
+### Image Tagging Strategy
+- Format: `europe-west2-docker.pkg.dev/keithtest001/nextjs-containers/learn-fast-with-ai:{FULL_SHA}`
+- Example: `...learn-fast-with-ai:4580d269411249578dabc2b717b5a135a47cb996`
+- Each commit creates unique image tag
+- Enables easy rollback to previous versions
+
+### Security Notes
+- Service account key stored in GitHub Secrets as `GCP_SA_KEY`
+- Cloud Run deployed with `--allow-unauthenticated` flag (public access)
+- Container runs as non-root user (`nextjs:nodejs`)
+- Health check endpoint at `/`
+
+---
+
+**Remember**: This application is deployed to GCP Cloud Run. Every change pushed to `main` triggers an automatic deployment. Test thoroughly before merging to `main`.
+
+---

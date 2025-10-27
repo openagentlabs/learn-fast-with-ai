@@ -1,0 +1,90 @@
+---
+alwaysApply: true
+---
+
+```markdown
+---
+alwaysApply: true
+---
+
+# Logging Rules (Concise Summary)
+
+## Overview
+The project uses a **centralized structured logging system** built on **Winston** to ensure consistent, contextual, and safe logging across the application.
+
+---
+
+## Core Principles
+- **Centralized Logging**: Use the shared `logger` instance from `@/lib/logging`.
+- **Structured Data**: Always log key-value objects, not string concatenations.
+- **Contextual Logging**: Use **child loggers** with metadata (e.g., service, component, route).
+- **Thread-Safe Singleton**: Ensures consistent logging in concurrent operations.
+- **Dual Output**: Console (colored) and file (JSON) outputs enabled.
+
+---
+
+## Mandatory Logging Scenarios
+- Application startup and shutdown  
+- Error handling with full context  
+- Configuration loading and validation  
+- External API calls (success/failure)  
+- Workflow and deployment steps  
+- Performance-critical operations  
+- Security and authentication events  
+- Data mutations or file operations  
+
+---
+
+## Logging Levels
+- **error** — Failures impacting functionality  
+- **warn** — Potential issues or deprecated features  
+- **info** — Successful or important operations  
+- **debug** — Detailed diagnostic information (development only)  
+
+---
+
+## Best Practices
+1. Always import via `@/lib/logging`
+2. Initialize early (e.g., in `layout.tsx`)
+3. Create **child loggers** for services/components
+4. Include **metadata** for context (e.g., IDs, names)
+5. Log **errors** with stack traces and metadata
+6. Use **appropriate log levels** for environment
+7. Never log **sensitive data**
+8. Prefer **descriptive messages**
+9. Use **structured objects**, not concatenated strings
+10. Keep logs concise and meaningful
+
+---
+
+## Configuration Summary
+| Option | Default | Purpose |
+|--------|----------|----------|
+| `level` | info | Minimum logging level |
+| `enableConsole` | true | Enable console output |
+| `enableFile` | true | Enable file logging |
+| `fileName` | app.log | Log file name |
+| `maxFiles` | 5 | File rotation count |
+| `maxSize` | 10m | Max file size before rotation |
+
+---
+
+## AI Agent Code Generation Rules
+1. Always use `import { logger } from '@/lib/logging'`
+2. Create **child loggers** for services, routes, and server actions
+3. Log before and after major operations
+4. Log **errors with full context** before rethrowing
+5. Wrap performance-critical operations in timing logs
+6. Never log secrets, tokens, or PII
+7. Use structured metadata consistently
+8. Keep `info` for user-facing success, `debug` for internal tracing
+
+---
+
+## Summary
+Consistent, contextual, and structured logging ensures:
+- Easier debugging  
+- Reliable observability  
+- Secure and traceable workflows  
+- Maintainable, production-grade diagnostics
+```

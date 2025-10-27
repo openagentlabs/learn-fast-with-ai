@@ -1,0 +1,720 @@
+---
+alwaysApply: true
+---
+
+# Git Rules for Learn Fast with AI Project
+
+## Overview
+This document defines the git workflow, conventions, and best practices for the Learn Fast with AI project. All team members and AI agents must follow these rules to maintain a clean, organized, and traceable git history.
+
+### Repository Information
+- **GitHub Repository**: https://github.com/openagentlabs/learn-fast-with-ai
+- **Project Name**: learn-fast-with-ai
+- **Deployment Target**: Google Cloud Run
+- **CI/CD**: GitHub Actions (`.github/workflows/deploy.yml`)
+- **Trigger**: Automatic deployment on push to `main` branch
+
+---
+
+## 0. CI/CD and Deployment (GitHub Actions)
+
+### Deployment Pipeline Overview
+- **Workflow File**: `.github/workflows/deploy.yml`
+- **Triggers**: Push to `main` branch
+- **Platform**: Google Cloud Platform (GCP)
+- **Service**: Cloud Run in region `europe-west2`
+
+### GitHub Actions Workflow
+
+**Automatic Deployment Process:**
+1. **Trigger**: Push to `main` branch starts deployment workflow
+2. **Authentication**: Uses `GCP_SA_KEY` secret for GCP authentication
+3. **Build**: Multi-stage Docker build using `docker/Dockerfile`
+4. **Artifact Registry**: Images pushed to `nextjs-containers` repository
+5. **Cloud Run**: Automatically deploys to `learn-fast-with-ai` service
+
+### Key Configuration
+
+| Variable | Value | Purpose |
+|----------|-------|---------|
+| `PROJECT_ID` | `keithtest001` | Google Cloud project |
+| `SERVICE_NAME` | `learn-fast-with-ai` | Cloud Run service name |
+| `REGION` | `europe-west2` | Cloud Run region |
+| `ARTIFACT_REPO` | `nextjs-containers` | Artifact Registry repository |
+
+### Deployment Rules
+
+**MANDATORY Considerations for Deployments:**
+- Every push to `main` triggers automatic deployment
+- All commits must be production-ready and tested
+- Never push broken code to `main` (it will auto-deploy)
+- Cloud Run service is publicly accessible (`--allow-unauthenticated` flag)
+- Build uses multi-stage Dockerfile for optimized production images
+- Image tagging uses full commit SHA for versioning
+
+**AI Agent Deployment Awareness:**
+- Be aware that pushing to `main` triggers deployment
+- Only merge complete, tested features
+- Verify all environment variables are properly configured
+- Check that secrets are available before final push
+
+---
+
+## 1. Branch Naming Conventions
+
+### Branch Types and Prefixes
+
+| Branch Type | Prefix | Example | Purpose |
+|------------|--------|---------|---------|
+| Feature | `feature/` | `feature/add-user-authentication` | New features or enhancements |
+| Bug Fix | `bugfix/` | `bugfix/fix-login-error` | Bug fixes |
+| Hotfix | `hotfix/` | `hotfix/critical-security-patch` | Critical production fixes |
+| Refactor | `refactor/` | `refactor/optimize-api-calls` | Code refactoring |
+| Documentation | `docs/` | `docs/update-readme` | Documentation updates |
+| Test | `test/` | `test/add-integration-tests` | Test additions or updates |
+| Chore | `chore/` | `chore/update-dependencies` | Maintenance tasks |
+
+### Branch Naming Rules
+
+**MANDATORY:**
+- Use lowercase letters and hyphens only
+- Be descriptive and specific
+- Include ticket/issue number if applicable: `feature/TICKET-123-add-feature-name`
+- Keep names concise (max 50 characters)
+- Use present tense action verbs
+
+**Examples:**
+- ✅ `feature/add-flashcard-generation`
+- ✅ `bugfix/fix-auth-error`
+- ✅ `docs/update-ai-agent-rules`
+- ❌ `new-feature` (too vague)
+- ❌ `fix` (not descriptive)
+- ❌ `Feature_Add_Authentication` (wrong format)
+
+---
+
+## 2. Commit Message Standards
+
+### Commit Message Format
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+### Commit Types
+
+| Type | Description | Example |
+|------|-------------|---------|
+| `feat` | New feature | `feat(flashcards): add AI-powered generation` |
+| `fix` | Bug fix | `fix(auth): resolve login timeout issue` |
+| `docs` | Documentation changes | `docs(readme): update installation steps` |
+| `style` | Code style changes (formatting, etc.) | `style(ui): format component with prettier` |
+| `refactor` | Code refactoring | `refactor(services): extract common logic` |
+| `test` | Adding or updating tests | `test(flashcards): add integration tests` |
+| `chore` | Maintenance tasks | `chore(deps): update dependencies` |
+| `perf` | Performance improvements | `perf(api): optimize database queries` |
+| `ci` | CI/CD changes | `ci(deploy): update Cloud Run deployment` |
+| `build` | Build system changes | `build(docker): update Dockerfile` |
+
+### Commit Message Rules
+
+**Subject Line (MANDATORY):**
+- Maximum 72 characters
+- Use imperative mood ("add feature" not "added feature")
+- No period at the end
+- Start with lowercase letter
+- Be specific and descriptive
+
+**Body (OPTIONAL but recommended for complex changes):**
+- Wrap at 72 characters
+- Explain what and why, not how
+- Reference related issues: `Fixes #123`, `Closes #456`
+- Include breaking changes if applicable
+
+**Footer (OPTIONAL):**
+- Reference issues: `Refs #123`
+- Breaking changes: `BREAKING CHANGE: <description>`
+- Co-authors: `Co-authored-by: Name <email>`
+
+### Commit Message Examples
+
+**Good Examples:**
+```
+feat(flashcards): add AI-powered flashcard generation
+
+- Implement Gemini AI integration for content generation
+- Add flashcard management service
+- Update UI to support flashcard creation workflow
+
+Closes #123
+```
+
+```
+fix(auth): resolve login timeout after 5 minutes
+
+The authentication token was expiring after 5 minutes due to
+incorrect token refresh logic. This commit implements automatic
+token refresh before expiration.
+
+Fixes #456
+```
+
+```
+docs(readme): update deployment instructions
+
+- Add Cloud Run deployment steps
+- Include environment variable documentation
+- Update GitHub Actions workflow details
+```
+
+**Bad Examples:**
+```
+❌ fixed bug
+❌ WIP
+❌ changes
+❌ update
+❌ Fixed the login issue that was happening sometimes
+```
+
+---
+
+## 3. Commit Frequency and Atomic Commits
+
+### Atomic Commit Principle
+
+**ALWAYS:**
+- Make one logical change per commit
+- Commit often (every 15-30 minutes of focused work)
+- Ensure each commit leaves the project in a working state
+- Test before committing
+
+**NEVER:**
+- Commit multiple unrelated changes together
+- Commit broken code
+- Commit with "WIP" or placeholder messages
+- Commit large files or generated artifacts
+
+### When to Commit
+
+**Commit immediately after:**
+- Completing a single feature or bug fix
+- Passing all tests for a change
+- Adding comprehensive tests
+- Updating documentation for a change
+- Resolving linter errors
+- Completing a refactoring session
+
+### Commit Checklist
+
+Before every commit, verify:
+- [ ] Code compiles without errors
+- [ ] All tests pass
+- [ ] Linter shows no errors or warnings
+- [ ] Commit message follows conventions
+- [ ] No sensitive data (API keys, passwords) in code
+- [ ] No debug code or console.logs left behind
+- [ ] Changes are related and atomic
+
+---
+
+## 4. Pull Request Workflow
+
+### Creating Pull Requests
+
+**MANDATORY Steps:**
+1. Create feature branch from `main`
+2. Make changes and commit following conventions
+3. Push branch to remote
+4. Create PR with descriptive title and body
+5. Request review from at least one team member
+6. Address review comments
+7. Ensure CI/CD checks pass
+8. Get approval
+9. Squash and merge to `main`
+
+### Pull Request Title Format
+
+```
+<type>(<scope>): <short description>
+
+Examples:
+- feat(flashcards): add AI-powered generation
+- fix(auth): resolve login timeout
+- docs(deployment): update Cloud Run documentation
+```
+
+### Pull Request Description Template
+
+```markdown
+## Description
+Brief description of changes
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+
+## Changes Made
+- List of changes
+- What was added/modified
+- Any dependencies updated
+
+## Testing
+- [ ] Unit tests added/updated
+- [ ] Integration tests added/updated
+- [ ] Manual testing completed
+- [ ] All tests passing
+
+## Screenshots (if applicable)
+Add screenshots for UI changes
+
+## Related Issues
+Closes #123
+Fixes #456
+
+## Checklist
+- [ ] Code follows project style guidelines
+- [ ] Self-review completed
+- [ ] Comments added for complex code
+- [ ] Documentation updated
+- [ ] No new warnings generated
+- [ ] Tests added/updated
+- [ ] All tests passing
+```
+
+### Pull Request Review Rules
+
+**Reviewers MUST:**
+- Review within 24 hours
+- Check code quality and style
+- Verify tests are adequate
+- Test changes locally if needed
+- Approve or request changes with specific feedback
+
+**Authors MUST:**
+- Respond to review comments within 24 hours
+- Address all requested changes
+- Re-request review after making changes
+- Not merge own PR without approval
+
+---
+
+## 5. Merge Strategies
+
+### Merge Strategy: Squash and Merge
+
+**Primary merge strategy for all PRs:**
+- Squash all commits into a single commit
+- Rewrite commit message to match PR title
+- Preserves clean linear history
+- Easier to revert if needed
+
+### When to Use Different Merge Strategies
+
+| Strategy | When to Use | Example |
+|----------|-------------|---------|
+| Squash and Merge | Most PRs (default) | Feature branches, bugfixes |
+| Merge Commit | Major releases | Version releases with multiple contributors |
+| Rebase and Merge | Never (use squash instead) | N/A |
+
+### Merging Rules
+
+**ALWAYS:**
+- Squash commits before merging
+- Ensure all CI/CD checks pass
+- Get required approvals
+- Update documentation if needed
+- Delete feature branch after merge
+
+**NEVER:**
+- Merge directly to `main` without PR
+- Merge with failing tests
+- Merge without review
+- Force push to `main`
+- Merge broken code
+
+---
+
+## 6. Branch Protection Rules
+
+### Main Branch Protection
+
+**MANDATORY Protection Settings for `main`:**
+- Require pull request reviews before merging
+- Require at least 1 approval
+- Require status checks to pass before merging
+- Require branches to be up to date before merging
+- Require conversation resolution before merging
+- Do not allow force pushes
+- Do not allow deletions
+- Require linear history
+
+### Protected Branches
+
+- `main` - Production-ready code
+- `develop` - Integration branch (if using GitFlow)
+- `release/*` - Release preparation branches
+- `hotfix/*` - Critical production fixes
+
+---
+
+## 7. Release Management
+
+### Version Numbering (Semantic Versioning)
+
+Format: `MAJOR.MINOR.PATCH`
+
+- **MAJOR**: Breaking changes
+- **MINOR**: New features (backward compatible)
+- **PATCH**: Bug fixes (backward compatible)
+
+Examples: `1.0.0`, `1.1.0`, `1.1.1`, `2.0.0`
+
+### Release Process
+
+1. Create release branch: `release/v1.2.0`
+2. Update version in `package.json`
+3. Update `CHANGELOG.md`
+4. Create release PR to `main`
+5. Get approval and merge
+6. Tag release: `git tag -a v1.2.0 -m "Release v1.2.0"`
+7. Push tags: `git push origin v1.2.0`
+8. Create GitHub release with release notes
+9. Deploy to production
+10. Merge back to `develop` if applicable
+
+### Release Checklist
+
+- [ ] All features complete and tested
+- [ ] All tests passing
+- [ ] Documentation updated
+- [ ] Version number updated
+- [ ] CHANGELOG.md updated
+- [ ] Release notes prepared
+- [ ] Deployment plan ready
+- [ ] Rollback plan prepared
+
+---
+
+## 8. Hotfix Procedures
+
+### When to Create Hotfix
+
+- Critical production bug
+- Security vulnerability
+- Data loss or corruption risk
+- Performance degradation
+
+### Hotfix Process
+
+1. Create hotfix branch from `main`: `hotfix/critical-bug-description`
+2. Fix the issue
+3. Add/update tests
+4. Update CHANGELOG.md
+5. Create PR to `main`
+6. Get urgent review and approval
+7. Merge to `main`
+8. Tag hotfix: `git tag -a v1.2.1 -m "Hotfix v1.2.1"`
+9. Deploy immediately
+10. Merge back to `develop` if applicable
+
+### Hotfix Rules
+
+**ALWAYS:**
+- Fix only the critical issue (no scope creep)
+- Test thoroughly before merging
+- Document the fix
+- Deploy immediately after merge
+- Monitor after deployment
+
+**NEVER:**
+- Add new features in hotfix
+- Skip testing
+- Deploy without approval
+- Forget to merge back to develop
+
+---
+
+## 9. Git Hooks and Automation
+
+### Pre-Commit Hook
+
+**MANDATORY Checks:**
+- Linter passes (ESLint, Prettier)
+- Tests pass
+- No debug code (console.log, debugger)
+- No sensitive data
+- Commit message follows conventions
+
+### Pre-Push Hook
+
+**MANDATORY Checks:**
+- All tests pass
+- Linter shows no errors
+- No merge conflicts
+- Branch is up to date
+
+### Commit Message Hook
+
+- Validate commit message format
+- Check for conventional commit types
+- Ensure subject line is under 72 characters
+- Verify no "WIP" or placeholder messages
+
+---
+
+## 10. Git Best Practices
+
+### Daily Git Workflow
+
+1. **Start of day:**
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **During work:**
+   - Commit frequently with atomic commits
+   - Push to remote regularly
+   - Keep branch up to date with main
+
+3. **End of day:**
+   - Push all work to remote
+   - Create WIP PR if feature incomplete
+   - Document any blockers
+
+### Keeping Branches Up to Date
+
+**Regularly sync with main:**
+```bash
+git checkout main
+git pull origin main
+git checkout feature/your-feature-name
+git rebase main
+# Resolve conflicts if any
+git push origin feature/your-feature-name --force-with-lease
+```
+
+### Handling Merge Conflicts
+
+1. Update your branch with latest `main`
+2. Identify conflicted files
+3. Open each file and resolve conflicts
+4. Test the resolution
+5. Stage resolved files: `git add .`
+6. Continue rebase: `git rebase --continue`
+7. Push with `--force-with-lease`
+
+### Git Commands Reference
+
+```bash
+# Create and switch to new branch
+git checkout -b feature/feature-name
+
+# Stage all changes
+git add .
+
+# Commit with message
+git commit -m "feat(scope): description"
+
+# Push to remote
+git push origin feature/feature-name
+
+# Update from main
+git checkout main
+git pull origin main
+git checkout feature/feature-name
+git rebase main
+
+# View commit history
+git log --oneline --graph --decorate
+
+# View changes
+git diff
+
+# View staged changes
+git diff --staged
+
+# Undo last commit (keep changes)
+git reset --soft HEAD~1
+
+# Undo last commit (discard changes)
+git reset --hard HEAD~1
+
+# Stash changes
+git stash
+
+# Apply stash
+git stash pop
+
+# View branch list
+git branch -a
+
+# Delete local branch
+git branch -d feature/feature-name
+
+# Delete remote branch
+git push origin --delete feature/feature-name
+```
+
+---
+
+## 11. AI Agent Git Rules
+
+### When AI Agent Makes Code Changes
+
+**MANDATORY:**
+1. Create feature branch for changes: `feature/ai-add-feature-name`
+2. Make atomic commits with proper messages
+3. Push changes to remote
+4. Create PR with detailed description
+5. Include UUID in commit message for tracking
+6. Update `debuging/code_development_history.md`
+7. Ensure all tests pass before committing
+8. Fix linter errors before committing
+
+### AI Agent Commit Message Format
+
+```
+<type>(<scope>): <description>
+
+UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+Changes: List of modified files and line numbers
+```
+
+### AI Agent Branch Naming
+
+- Use `feature/` prefix for new features (e.g., `feature/ai-add-flashcard-service`)
+- Use `bugfix/` prefix for bug fixes
+- Use `refactor/` prefix for refactoring
+- Use `docs/` prefix for documentation updates
+- Include UUID in branch name if long-running work: `feature/ai-add-flashcard-feature-uuid-12345`
+
+### AI Agent Push and Deployment Awareness
+
+**CRITICAL: Automatic Deployment on Push to Main**
+- ⚠️ **NEVER push directly to `main` without thorough testing**
+- ⚠️ Every push to `main` triggers automatic Cloud Run deployment
+- ⚠️ Deployed code is publicly accessible at Cloud Run URL
+- ⚠️ GitHub Actions workflow builds Docker image and deploys automatically
+- ⚠️ Always test locally before pushing to `main`
+- ⚠️ Ensure all secrets and environment variables are configured in GCP
+- ⚠️ Verify Cloud Run service health after deployment
+
+---
+
+## 12. Prohibited Git Practices
+
+### NEVER Do These
+
+❌ **Force push to main or protected branches**
+❌ **Commit directly to main without PR**
+❌ **Commit sensitive data (API keys, passwords, tokens)**
+❌ **Commit large files or binaries**
+❌ **Commit generated files (node_modules, dist, build)**
+❌ **Commit debug code or console.logs**
+❌ **Commit with "WIP", "fix", "update" messages**
+❌ **Commit broken code**
+❌ **Skip tests before committing**
+❌ **Merge without review**
+❌ **Delete main branch**
+❌ **Amend commits that are already pushed**
+❌ **Use `git add .` without reviewing changes**
+
+---
+
+## 13. Emergency Procedures
+
+### Reverting a Bad Commit
+
+```bash
+# Find the commit hash
+git log --oneline
+
+# Revert the commit (creates new commit)
+git revert <commit-hash>
+
+# Or reset to previous commit (destructive)
+git reset --hard <commit-hash>
+```
+
+### Recovering Lost Work
+
+```bash
+# View recent commits
+git reflog
+
+# Recover from stash
+git stash list
+git stash apply stash@{0}
+
+# Recover deleted branch
+git reflog
+git checkout -b recovered-branch <commit-hash>
+```
+
+### Emergency Hotfix Deployment
+
+1. Create hotfix branch from production tag
+2. Fix critical issue
+3. Test thoroughly
+4. Create urgent PR
+5. Get expedited review
+6. Merge and deploy immediately
+7. Monitor closely
+
+---
+
+## 14. Summary Checklist
+
+### Before Every Commit
+- [ ] Code compiles without errors
+- [ ] Tests pass
+- [ ] Linter shows no errors
+- [ ] Commit message follows conventions
+- [ ] No sensitive data
+- [ ] No debug code
+- [ ] Changes are atomic
+
+### Before Every PR
+- [ ] All commits follow conventions
+- [ ] Tests added/updated
+- [ ] Documentation updated
+- [ ] PR description complete
+- [ ] CI/CD checks pass
+- [ ] No merge conflicts
+- [ ] Branch is up to date with main
+
+### Before Every Merge
+- [ ] PR approved
+- [ ] All checks pass
+- [ ] No merge conflicts
+- [ ] Documentation updated
+- [ ] Ready for deployment
+
+---
+
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| Create feature branch | `git checkout -b feature/name` |
+| Commit changes | `git commit -m "type(scope): message"` |
+| Push to remote | `git push origin feature/name` |
+| Update from main | `git checkout main && git pull && git checkout - && git rebase main` |
+| View history | `git log --oneline --graph --decorate` |
+| View changes | `git diff` |
+| Stash changes | `git stash` |
+| Apply stash | `git stash pop` |
+| Create tag | `git tag -a v1.0.0 -m "Release v1.0.0"` |
+| Push tags | `git push origin --tags` |
+
+---
+
+**Remember:** Clean git history is a team effort. Every commit should tell a story. Follow these rules to maintain a professional, traceable, and maintainable codebase.

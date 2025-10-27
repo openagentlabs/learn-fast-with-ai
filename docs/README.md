@@ -4,6 +4,265 @@
 
 This project uses Google Cloud Platform (GCP) for hosting a Next.js application deployed as a containerized service on Cloud Run. The deployment is fully automated through GitHub Actions CI/CD pipeline.
 
+---
+
+## End-to-End Deployment Process
+
+This section provides a complete understanding of how the deployment works from source code to production service, covering every component and step in the pipeline.
+
+### Complete Deployment Flow with Numbered Steps
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                    END-TO-END DEPLOYMENT PIPELINE                                 │
+│                    From Source Code to Production                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ PART 1: SOURCE CONTROL (GitHub)                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+Step 1: Developer makes code changes locally
+        │
+        ├─ Modifies source files (src/, docker/, etc.)
+        ├─ Commits changes: git commit -m "message"
+        └─ Pushes to GitHub: git push origin main
+        │
+        ▼
+Step 2: GitHub receives push to main branch
+        │
+        ├─ Repository: github.com/openagentlabs/learn-fast-with-ai
+        ├─ Branch: main
+        └─ Trigger: Push event detected
+        │
+        ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ PART 2: CI/CD ORCHESTRATION (GitHub Actions)                                     │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+Step 3: GitHub Actions workflow triggered
+        │
+        ├─ Workflow file: .github/workflows/deploy.yml
+        ├─ Trigger: on: push: branches: [main]
+        └─ Runner: ubuntu-latest
+        │
+        ▼
+Step 4: GitHub Actions - Checkout code
+        │
+        ├─ Action: actions/checkout@v4
+        ├─ Fetches latest source code from repository
+        └─ Makes code available to workflow steps
+        │
+        ▼
+Step 5: GitHub Actions - Authenticate to GCP
+        │
+        ├─ Action: google-github-actions/auth@v2
+        ├─ Uses secret: GCP_SA_KEY (Service Account JSON)
+        ├─ Authenticates with Google Cloud Platform
+        └─ Enables access to GCP services
+        │
+        ▼
+Step 6: GitHub Actions - Setup Cloud SDK
+        │
+        ├─ Action: google-github-actions/setup-gcloud@v2
+        ├─ Installs Google Cloud SDK (gcloud CLI)
+        ├─ Configures Docker authentication for Artifact Registry
+        └─ Sets up environment for Cloud Build
+        │
+        ▼
+Step 7: GitHub Actions - Submit build to Cloud Build
+        │
+        ├─ Command: gcloud builds submit --config=cloudbuild.yaml
+        ├─ Passes substitutions: SHORT_SHA, PROJECT_ID, etc.
+        ├─ Uploads source code to Cloud Build
+        └─ Triggers container image build process
+        │
+        ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ PART 3: CONTAINER BUILD (Google Cloud Build)                                     │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+Step 8: Cloud Build receives build request
+        │
+        ├─ Build configuration: cloudbuild.yaml (from root directory)
+        ├─ Source code uploaded to GCS bucket
+        ├─ Build execution starts in Cloud Build environment
+        └─ Reads cloudbuild.yaml for build steps
+        │
+        ▼
+Step 9: Cloud Build - Execute Build Step
+        │
+        ├─ Step name: gcr.io/cloud-builders/docker
+        ├─ Docker command: docker build
+        ├─ Dockerfile location: docker/Dockerfile
+        ├─ Build context: . (project root)
+        └─ Image tag: {REGION}-docker.pkg.dev/{PROJECT_ID}/{ARTIFACT_REPO}/{SERVICE_NAME}:{SHA}
+        │
+        ▼
+Step 10: Docker Build - Stage 1: Dependencies
+         │
+         ├─ Stage: FROM node:20-alpine AS deps
+         ├─ Copies: package.json, package-lock.json
+         ├─ Executes: npm ci (installs ALL dependencies)
+         ├─ Includes: Dev dependencies needed for building
+         └─ Output: /app/node_modules directory
+         │
+         ▼
+Step 11: Docker Build - Stage 2: Builder
+         │
+         ├─ Stage: FROM node:20-alpine AS builder
+         ├─ Copies: node_modules from deps stage
+         ├─ Copies: All source files (COPY . .)
+         ├─ Sets: NODE_ENV=production, NEXT_TELEMETRY_DISABLED=1
+         ├─ Executes: npm run build (Next.js build)
+         ├─ Creates: .next directory with optimized code
+         └─ Output: Built application in .next/standalone
+         │
+         ▼
+Step 12: Docker Build - Stage 3: Runner (Production)
+         │
+         ├─ Stage: FROM node:20-alpine AS runner
+         ├─ Creates: Non-root user (nextjs:nodejs)
+         ├─ Copies: .next/standalone from builder
+         ├─ Copies: .next/static from builder
+         ├─ Includes: Public files (already in standalone)
+         ├─ Creates: Data directory (/app/data)
+         ├─ Sets: USER nextjs, PORT=3000, HOSTNAME=0.0.0.0
+         ├─ Adds: HEALTHCHECK instruction
+         ├─ Sets: CMD ["node", "server.js"]
+         └─ Output: Minimal production image (~71MB)
+         │
+         ▼
+Step 13: Cloud Build - Execute Push Step
+         │
+         ├─ Step name: gcr.io/cloud-builders/docker
+         ├─ Docker command: docker push
+         ├─ Pushes: Built image to Artifact Registry
+         ├─ Registry: europe-west2-docker.pkg.dev/keithtest001/nextjs-containers
+         ├─ Repository: learn-fast-with-ai
+         ├─ Tag: {commit-sha}
+         └─ Result: Image stored in Artifact Registry
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ PART 4: IMAGE STORAGE (Google Artifact Registry)                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+Step 14: Artifact Registry receives image
+         │
+         ├─ Location: europe-west2-docker.pkg.dev/keithtest001/nextjs-containers
+         ├─ Image: learn-fast-with-ai
+         ├─ Tag: Full commit SHA (e.g., 4580d269411249578dabc2b717b5a135a47cb996)
+         ├─ Digest: sha256:f00fd5cc3c72868d5212c54ed5905bac9660193e13ea8d7659daabb32f1b6c13
+         ├─ Size: ~71MB
+         └─ Result: Image permanently stored and versioned
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ PART 5: DEPLOYMENT (Google Cloud Run)                                            │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+Step 15: GitHub Actions receives image location
+         │
+         ├─ Cloud Build returns image tag to GitHub Actions
+         ├─ Image location exported as environment variable
+         └─ Ready for Cloud Run deployment
+         │
+         ▼
+Step 16: GitHub Actions - Deploy to Cloud Run
+         │
+         ├─ Action: google-github-actions/deploy-cloudrun@v2
+         ├─ Image: From step 15
+         ├─ Service: learn-fast-with-ai
+         ├─ Region: europe-west2
+         ├─ Flags: --allow-unauthenticated (public access)
+         └─ Triggers: Cloud Run deployment API
+         │
+         ▼
+Step 17: Cloud Run - Create new revision
+         │
+         ├─ Pulls: Image from Artifact Registry
+         ├─ Creates: New revision with container configuration
+         ├─ Configures: Environment variables, resources, scaling
+         ├─ Sets: Traffic routing to new revision
+         └─ Deploys: Container to Cloud Run service
+         │
+         ▼
+Step 18: Cloud Run - Start container instances
+         │
+         ├─ Provisions: Serverless compute resources
+         ├─ Runs: Container with Next.js application
+         ├─ Exposes: Port 8080 (Cloud Run default, mapped from container port 3000)
+         ├─ Health check: Monitors / endpoint
+         └─ Scales: From zero to handling requests
+         │
+         ▼
+Step 19: Cloud Run - Traffic routing active
+         │
+         ├─ URL: https://learn-fast-with-ai-eupbowmhxa-nw.a.run.app
+         ├─ Route: Traffic to new revision
+         ├─ SSL/TLS: Automatic HTTPS termination
+         ├─ Status: Ready and accepting requests
+         └─ Result: Application live and accessible
+         │
+        ┌────────────────────────────────────────┐
+        │   APPLICATION IS NOW LIVE IN PRODUCTION  │
+        └────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ PART 6: MONITORING AND VERIFICATION                                              │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+Step 20: Verify deployment success
+        │
+        ├─ GitHub Actions: Check workflow status (✓ all steps passed)
+        ├─ Cloud Build: Verify build completed (gcloud builds list)
+        ├─ Artifact Registry: Confirm image exists (gcloud artifacts docker images list)
+        ├─ Cloud Run: Check service status (gcloud run services describe)
+        └─ Application: Test live URL (curl https://learn-fast-with-ai-eupbowmhxa-nw.a.run.app)
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                          DEPLOYMENT COMPLETE                                      │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Key Components Summary
+
+| Component | Purpose | Key Details |
+|-----------|---------|-------------|
+| **GitHub** | Source control | Repository: openagentlabs/learn-fast-with-ai |
+| **GitHub Actions** | CI/CD orchestration | Workflow: .github/workflows/deploy.yml |
+| **Cloud Build** | Container building | Config: cloudbuild.yaml, Dockerfile: docker/Dockerfile |
+| **Artifact Registry** | Image storage | Location: europe-west2-docker.pkg.dev/keithtest001/nextjs-containers |
+| **Cloud Run** | Serverless runtime | Service: learn-fast-with-ai, Region: europe-west2 |
+
+### Deployment Timeline
+
+- **Total time**: ~4-5 minutes end-to-end
+- **GitHub Actions**: ~30 seconds (steps 1-7)
+- **Cloud Build**: ~3-4 minutes (steps 8-13)
+- **Cloud Run deployment**: ~30-60 seconds (steps 14-19)
+
+### Verification Commands
+
+```bash
+# Check GitHub Actions workflow status
+gh run list
+gh run watch {run-id}
+
+# Check Cloud Build status
+gcloud builds list --project keithtest001 --limit 5
+
+# Verify image in Artifact Registry
+gcloud artifacts docker images list europe-west2-docker.pkg.dev/keithtest001/nextjs-containers/learn-fast-with-ai
+
+# Check Cloud Run service status
+gcloud run services describe learn-fast-with-ai --region europe-west2 --project keithtest001
+
+# View Cloud Run logs
+gcloud run services logs read learn-fast-with-ai --region europe-west2 --project keithtest001
+```
+
 ## Architecture
 
 ### Components Involved
