@@ -91,14 +91,17 @@ jobs:
           # Define the release name using short SHA for uniqueness
           RELEASE_NAME="release-${{ github.sha }}"
           
+          # Replace image placeholder in deploy-config.yaml with actual image
+          sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE_TAG }}|g" deploy/deploy-config.yaml
+          
           # Create Cloud Deploy release and trigger deployment to dev target
+          # --from-run-manifest specifies the Cloud Run manifest with image substitution
           # --to-target specifies which target to deploy to in the pipeline
-          # --images maps the container image to deploy
           gcloud deploy releases create "$RELEASE_NAME" \
             --delivery-pipeline=learn-fast-with-ai-pipeline \
             --region=${{ env.REGION }} \
+            --from-run-manifest=deploy/deploy-config.yaml \
             --to-target=dev \
-            --images=app=${{ env.IMAGE_TAG }} \
             --project=${{ env.PROJECT_ID }}
           
           echo "Release created: $RELEASE_NAME"

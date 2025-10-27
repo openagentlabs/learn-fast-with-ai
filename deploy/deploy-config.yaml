@@ -1,0 +1,49 @@
+# Deploy Config for Cloud Run
+# UUID: 9h0i1j2k-3l4m-5n6o-p7q8-r9s0t1u2v3w4
+# Cloud Run deployment configuration for learn-fast-with-ai
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: learn-fast-with-ai
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      containerConcurrency: 100
+      timeoutSeconds: 300
+      containers:
+      - image: IMAGE_PLACEHOLDER
+        ports:
+        - name: http1
+          containerPort: 3000
+        resources:
+          limits:
+            cpu: "1"
+            memory: 512Mi
+        startupProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          timeoutSeconds: 3
+          periodSeconds: 10
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          timeoutSeconds: 3
+          periodSeconds: 30
+          failureThreshold: 3
+        env:
+        - name: PORT
+          value: "3000"
+        - name: NODE_ENV
+          value: "production"
+
