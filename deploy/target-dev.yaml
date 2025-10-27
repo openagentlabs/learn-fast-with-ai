@@ -7,13 +7,6 @@ kind: Target
 metadata:
   name: dev
 description: Cloud Run dev target for learn-fast-with-ai
-executionConfigs:
-  - usages:
-      - RENDER
-      - DEPLOY
-    executionEnvironmentType: CLOUD_RUN
-    cloudRun:
-      location: europe-west2
-      project: keithtest001
-    serviceAccount: default
+run:
+  location: projects/keithtest001/locations/europe-west2
 
