@@ -41,7 +41,6 @@ RUN addgroup --system --gid 1001 nodejs && \
 # The standalone directory contains server.js at root and all app files
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Create data directory for database persistence
 RUN mkdir -p /app/data && \
