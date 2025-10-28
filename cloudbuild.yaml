@@ -1,12 +1,12 @@
 steps:
-  # Step 1: Build the Docker image using docker/Dockerfile
+  # Step 1: Build the Docker image using infrastructure/docker/Dockerfile
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
       - '-t'
       - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REPO}/${_SERVICE_NAME}:${SHORT_SHA}'
       - '-f'
-      - 'docker/Dockerfile'
+      - 'infrastructure/docker/Dockerfile'
       - '.'
 
   # Step 2: Push the image to Artifact Registry

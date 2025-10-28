@@ -2,8 +2,29 @@
 alwaysApply: true
 ---
 
-# Web Design Rules for AI Agent
+# Web Design Rules - Following are the web design rules and knowelledge to be used for web design implentation
 
-**UI Framework:** Use **Tailwind CSS v4** for all styling and **shadcn/ui** components for UI elements.
+**UI Framework:** 
+Web Page: Use **Tailwind CSS v4** for all web page layout 
+Web Page: Use **Tailwind CSS v4** for all web page styling 
+Web Page Components: Use **Tailwind CSS v4** for all web page compoent layout 
+Web Page Components: Use **Tailwind CSS v4** for all web page compoent styling 
+
+
+**Component Creation:** Always use and **shadcn/ui** for the creation of UI componets, and create a wrapper compoent to wrap one of more **shadcn/ui** compoents into a single reusable compoent, locate in the src.
 **Styling Approach:** Prefer utility-first Tailwind classes over custom CSS. Use shadcn components from `src/components/ui/` for consistent, accessible UI patterns.
 **Component Usage:** Always use existing shadcn components before creating custom ones. Customize via Tailwind classes and component props, not by modifying shadcn source files.
+
+
+## 🚨 CRITICAL: Server Actions Over API Routes
+
+**MANDATORY:** For ALL browser-to-server communication, use Server Actions as the PRIMARY pattern.
+
+- ✅ **Use Server Actions for:** Form submissions, data mutations, page data fetching, user interactions
+- ❌ **Do NOT create API routes** unless explicitly required for external consumers (webhooks, mobile apps, third-party integrations)
+- 📍 **Location:** Server Actions go in `src/presentation/actions/[domain]/actions.ts`
+- 📍 **API Routes** (when needed): `src/app/api/[resource]/route.ts` (thin wrapper, 3-5 lines only)
+
+**Default Rule:** Always start with Server Actions unless external consumer requires API.
+
+> **Note:** For complete decision matrix and architectural patterns, see `prj_architecture_rules.mdc` and `prj_coding_rules.mdc`.

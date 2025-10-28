@@ -43,6 +43,28 @@ After completing ANY task that involves code changes, you MUST:
 
 ---
 
+## 🏗️ Architecture Patterns
+
+### Server Actions (PRIMARY - Default)
+- Use for ALL browser-to-server communication
+- Location: `src/presentation/actions/[domain]/actions.ts`
+- Pattern: Server actions with 'use server' directive
+- Always use DI container to resolve use cases
+
+### API Routes (SECONDARY - External Only)
+- Use for external API consumers, webhooks, mobile apps
+- Locations: 
+  - `src/app/api/[resource]/route.ts` - Thin wrapper (3-5 lines)
+  - `src/presentation/handlers/[domain]/` - Business logic
+- Only create when explicitly required for external consumers
+
+### Dependency Injection (MANDATORY)
+- ALWAYS use DI container via TSyringe
+- Use: `const useCase = container.resolve(CreateUserUseCase);`
+- NEVER instantiate directly: `new CreateUserUseCase(repository)`
+
+---
+
 ## ⚙️ Mandatory Class Creation Rules
 
 ### Rule 1: Static Factory Method (REQUIRED)
@@ -151,5 +173,43 @@ A "code block" is: Class definition, Function definition, Interface/Type definit
 - Document performance-critical code - explain why optimization was needed
 - Keep optimized code isolated - don't let it spread through the codebase
 - Add comments when sacrificing readability - explain the tradeoff
+
+### 6. Single Responsibility Principle
+
+**Each function MUST perform exactly one task:**
+
+- ✅ One function = one responsibility
+- ❌ If description includes "and/or," split into multiple functions
+- ✅ Avoid side effects and hidden dependencies
+- ✅ Functions should do one thing and do it well
+- ✅ Single reason to change
+
+**Example:**
+```typescript
+// ❌ BAD: Does multiple things
+function processUser(user: User): void {
+  validateUser(user);
+  saveUser(user);
+  sendEmail(user);
+  logActivity(user);
+}
+
+// ✅ GOOD: Each function does one thing
+function processUser(user: User): void {
+  validateUser(user);
+  saveUser(user);
+  notifyUser(user);
+}
+
+function notifyUser(user: User): void {
+  sendEmail(user);
+  logActivity(user);
+}
+```
+
+### 7. Temporary Scripts and Debugging
+- Store temporary/debugging scripts in `/debuging/scripts/`
+- Include headers (purpose, date, usage)
+- Delete after use and record in development history
 
 ---

@@ -18,7 +18,7 @@ This document defines the infrastructure rules and knowledge for deploying the L
 - **CI/CD Pipeline**: GitHub Actions (`.github/workflows/deploy.yml`)
 - **Build System**: GCP Cloud Build (via `cloudbuild.yaml`)
 - **Container Registry**: GCP Artifact Registry
-- **Container Engine**: Docker (multi-stage build in `docker/Dockerfile`)
+- **Container Engine**: Docker (multi-stage build in `infrastructure/docker/Dockerfile`)
 
 ### GCP Resource Locations
 - **Project ID**: `keithtest001`
@@ -44,7 +44,7 @@ This document defines the infrastructure rules and knowledge for deploying the L
 2. **Authenticate to GCP**: Use service account key from GitHub secrets (`GCP_SA_KEY`)
 3. **Setup Cloud SDK**: Configure Docker authentication for Artifact Registry
 4. **Build and Push**: Submit build to Cloud Build, which:
-   - Builds Docker image using `docker/Dockerfile`
+   - Builds Docker image using `infrastructure/docker/Dockerfile`
    - Tags image with full commit SHA
    - Pushes to Artifact Registry
 5. **Deploy to Cloud Run**: Deploy containerized application as serverless service
@@ -54,7 +54,7 @@ This document defines the infrastructure rules and knowledge for deploying the L
 **Purpose**: Defines the build steps executed by GCP Cloud Build
 
 **Build Steps:**
-1. **Build Image**: Use `gcr.io/cloud-builders/docker` to build from `docker/Dockerfile`
+1. **Build Image**: Use `gcr.io/cloud-builders/docker` to build from `infrastructure/docker/Dockerfile`
    - Image tagged with: `${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REPO}/${SERVICE_NAME}:${SHORT_SHA}`
 2. **Push Image**: Push built image to Artifact Registry
 3. **Output**: Specify image location for deployment
@@ -66,7 +66,7 @@ This document defines the infrastructure rules and knowledge for deploying the L
 - `_ARTIFACT_REPO`: Artifact Registry repository
 - `SHORT_SHA`: Git commit hash for image versioning
 
-#### 3. Docker Build (`docker/Dockerfile`)
+#### 3. Docker Build (`infrastructure/docker/Dockerfile`)
 **Purpose**: Multi-stage Docker build for optimized production image
 
 **Build Stages:**
@@ -130,16 +130,16 @@ This document defines the infrastructure rules and knowledge for deploying the L
 
 ### Rule 3: Database Persistence
 **MANDATORY:**
-- ✅ Create data directory in Dockerfile (`/app/data`)
-- ✅ Set proper file permissions for database files
-- ✅ Use Cloud Run volumes or external storage for production data
+- ✅ Use Firestore for all data persistence
+- ✅ Configure Firestore database in Google Cloud Console
+- ✅ Use environment variables for Firestore configuration
 - ✅ Plan for stateless container restarts
 
 **KNOWLEDGE:**
 - Cloud Run instances are stateless by default
 - Data in containers is ephemeral and lost on restart
-- Use external database or persistent volumes for production data
-- SQLite database at `/app/data/app.db` for local development
+- Firestore provides persistent, scalable database as a service
+- Firestore automatically handles backups, replication, and scaling
 
 ### Rule 4: Deployment Configuration
 **MANDATORY:**
@@ -247,7 +247,7 @@ This document defines the infrastructure rules and knowledge for deploying the L
 2. Authenticates to GCP using service account key
 3. Submits build job to GCP Cloud Build
 4. Cloud Build executes `cloudbuild.yaml`:
-   - Builds Docker image using `docker/Dockerfile`
+   - Builds Docker image using `infrastructure/docker/Dockerfile`
    - Tags image with commit SHA
    - Pushes to Artifact Registry
 5. Returns image location to GitHub Actions
@@ -299,7 +299,7 @@ This document defines the infrastructure rules and knowledge for deploying the L
 
 - GitHub Actions: `.github/workflows/deploy.yml`
 - Cloud Build: `cloudbuild.yaml`
-- Docker Build: `docker/Dockerfile` and `docker/README.md`
+- Docker Build: `infrastructure/docker/Dockerfile` and `infrastructure/docker/README.md`
 - Project README: `README.md` (deployment instructions)
 - GCP Documentation: Cloud Run, Cloud Build, Artifact Registry
 
@@ -317,7 +317,7 @@ This document defines the infrastructure rules and knowledge for deploying the L
 3. Authenticates to GCP using `GCP_SA_KEY` secret
 4. Submits build to Cloud Build with `gcloud builds submit --config=cloudbuild.yaml`
 5. **Cloud Build** reads `cloudbuild.yaml`:
-   - Builds Docker image using `docker/Dockerfile`
+   - Builds Docker image using `infrastructure/docker/Dockerfile`
    - Multi-stage build: deps → builder → runner
    - Tags image with commit SHA: `{SHORT_SHA}`
    - Pushes to Artifact Registry
@@ -340,7 +340,7 @@ This document defines the infrastructure rules and knowledge for deploying the L
 ### Key Files and Locations
 - Workflow: `.github/workflows/deploy.yml`
 - Build Config: `cloudbuild.yaml` (root directory)
-- Dockerfile: `docker/Dockerfile`
+- Dockerfile: `infrastructure/docker/Dockerfile`
 - Build uses Next.js standalone output: `next.config.js` (output: 'standalone')
 
 ### Image Tagging Strategy

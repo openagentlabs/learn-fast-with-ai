@@ -6,7 +6,7 @@ alwaysApply: true
 # Debugging Rules and Best Practices
 
 ## Overview
-This document provides comprehensive guidelines for debugging and generating code with proper instrumentation for the TerraChatWeb application, a Next.js 15 application built with TypeScript, React 19, and Tailwind CSS v4.
+This document provides comprehensive guidelines for debugging and generating code with proper instrumentation for the learn-fast-with-ai application, a Next.js 15 application built with TypeScript, React 19, and Tailwind CSS v4.
 
 ---
 
@@ -27,7 +27,7 @@ This document provides comprehensive guidelines for debugging and generating cod
 
 ### MANDATORY: Use @scratch/ Directory for Debugging and Temporary Files
 
-**Location:** /home/keith/Dev/TerraChatWeb/debuging/scratch/
+**Location:** /home/keith/Dev/learn-fast-with-ai/debuging/scratch/
 
 **Purpose:**
 When debugging issues, investigating problems, or needing to save temporary information during development, the AI Agent MUST use the @scratch/ directory for storing temporary files, test data, or debugging artifacts.
@@ -56,7 +56,7 @@ When debugging issues, investigating problems, or needing to save temporary info
 
 ### Chrome MCP Server Screenshots
 
-**Location:** /home/keith/Dev/TerraChatWeb/debuging/images/
+**Location:** /home/keith/Dev/learn-fast-with-ai/debuging/images/
 
 **Purpose:**
 When debugging web pages and taking screenshots using the Chrome MCP server, store them in the @mcp_chrome_images/ directory (located at debuging/images/).

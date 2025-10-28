@@ -52,13 +52,13 @@ jobs:
           
           # Apply Cloud Deploy pipeline configuration (idempotent)
           # If pipeline already exists, this will update it; if not, it will create it
-          gcloud deploy apply --file=deploy/clouddeploy.yaml \
+          gcloud deploy apply --file=infrastructure/deploy/clouddeploy.yaml \
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} || true
           
           # Apply Cloud Run target configuration (idempotent)
           # If target already exists, this will update it; if not, it will create it
-          gcloud deploy apply --file=deploy/target-dev.yaml \
+          gcloud deploy apply --file=infrastructure/deploy/target-dev.yaml \
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} || true
           
@@ -71,7 +71,7 @@ jobs:
           IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
           
           # 2. Submit the build using cloudbuild.yaml which defines:
-          # - Build step using docker/Dockerfile (multi-stage build)
+          # - Build step using infrastructure/docker/Dockerfile (multi-stage build)
           # - Push step to Artifact Registry
           # The Dockerfile uses multi-stage builds to:
           # - Install all dependencies (including dev deps for building)
@@ -92,7 +92,7 @@ jobs:
           RELEASE_NAME="release-${{ github.sha }}"
           
           # Replace image placeholder in deploy-config.yaml with actual image
-          sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE_TAG }}|g" deploy/deploy-config.yaml
+          sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE_TAG }}|g" infrastructure/deploy/deploy-config.yaml
           
           # Create Cloud Deploy release and trigger deployment to dev target
           # --from-run-manifest specifies the Cloud Run manifest with image substitution
@@ -100,7 +100,7 @@ jobs:
           gcloud deploy releases create "$RELEASE_NAME" \
             --delivery-pipeline=learn-fast-with-ai-pipeline \
             --region=${{ env.REGION }} \
-            --from-run-manifest=deploy/deploy-config.yaml \
+            --from-run-manifest=infrastructure/deploy/deploy-config.yaml \
             --to-target=dev \
             --project=${{ env.PROJECT_ID }}
           

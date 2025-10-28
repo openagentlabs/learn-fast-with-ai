@@ -1,0 +1,120 @@
+---
+alwaysApply: true
+---
+
+# Learn Fast with AI Project Architecture
+
+## 📚 Knowledge
+
+### Project Architecture: Clean Architecture
+The project follows **Clean Architecture** with 5 layers:
+
+```
+src/
+├── domain/           # Core business rules (independent)
+├── application/      # Use cases and orchestration
+├── infrastructure/   # External adapters (DB, AI, etc.)
+├── presentation/     # Request/response handling (actions, handlers)
+└── app/             # Next.js routing (thin adapters)
+```
+
+**Layer Dependency Flow (CRITICAL):**
+```
+Domain ← Application ← Infrastructure
+Domain ← Application ← Presentation
+Domain ← Application ← App
+```
+
+**Allowed:**
+- ✅ Application uses Domain interfaces
+- ✅ Infrastructure implements Domain interfaces
+- ✅ Presentation uses Application use cases
+- ✅ App uses Presentation actions/handlers
+
+**Forbidden:**
+- ❌ Domain must NOT import from any other layer
+- ❌ Domain must NOT know about infrastructure
+- ❌ Application must NOT know about infrastructure details
+- ❌ Presentation must NOT access Infrastructure directly
+
+### Layer Responsibilities
+
+| Layer | Contains | Examples |
+|-------|----------|----------|
+| **Domain** | Business entities, interfaces | `User.ts`, `IUserRepository.ts` |
+| **Application** | Use cases, DTOs | `CreateUserUseCase.ts`, `FlashcardDTO.ts` |
+| **Infrastructure** | Repository implementations, AI services, DB | `UserRepository.ts`, `GeminiAIModel.ts` |
+| **Presentation** | Server actions, handlers | `actions.ts`, `UserHandler.ts` |
+| **App** | Next.js routes, pages | `route.ts`, `page.tsx` |
+
+### Code Placement by Type
+
+| Type | Location | Example |
+|------|----------|---------|
+| Business Entity | `src/domain/entities/` | `User.ts` |
+| Use Case | `src/application/use-cases/` | `CreateUserUseCase.ts` |
+| DTO | `src/application/dtos/` | `CreateUserDTO.ts` |
+| Repository Interface | `src/domain/interfaces/repositories/` | `IUserRepository.ts` |
+| Repository Implementation | `src/infrastructure/adapters/database/` | `UserRepository.ts` |
+| Service Interface | `src/domain/interfaces/services/` | `IAIModelService.ts` |
+| Service Implementation | `src/infrastructure/adapters/` | `GeminiAIModel.ts` |
+| Server Action | `src/presentation/actions/[domain]/` | `actions.ts` |
+| API Handler | `src/presentation/handlers/[domain]/` | `UserHandler.ts` |
+| Next.js Route | `src/app/api/[resource]/` | `route.ts` (3-5 lines only) |
+| Page Component | `src/app/(pages)/[page]/` | `page.tsx` |
+
+### Available Tools
+- **GCP gcloud CLI**: Cloud Run deployments, GCP operations
+- **Terraform**: Infrastructure as code
+- **Docker CLI**: Containerization
+- **GitHub CLI (gh)**: PR management, repository operations
+
+### Server Actions vs API Routes Decision Matrix
+
+| Scenario | Pattern | Location |
+|----------|---------|----------|
+| Form submission | ✅ Server Action | `src/presentation/actions/` |
+| Data mutation | ✅ Server Action | `src/presentation/actions/` |
+| Page data fetching | ✅ Server Action | `src/presentation/actions/` |
+| User interactions | ✅ Server Action | `src/presentation/actions/` |
+| External API | ✅ API Route | `src/app/api/` + handlers |
+| Webhook | ✅ API Route | `src/app/api/` + handlers |
+| Mobile backend | ✅ API Route | `src/app/api/` + handlers |
+| Third-party integration | ✅ API Route | `src/app/api/` + handlers |
+
+**Default:** Always start with Server Action unless external consumer requires API.
+
+---
+
+## 🎯 Rules
+
+### Rule 1: Application Lifecycle Hooks
+- Use hooks for startup and shutdown logic
+- `appStartHook`: Initialize services, validate configuration
+- `appEndHook`: Graceful shutdown and cleanup
+- Always log key lifecycle events
+
+---
+
+## 🎯 Quick Reference Checklist
+When creating new features:
+1. ✅ Define Domain entity in `src/domain/entities/`
+2. ✅ Define Repository interface in `src/domain/interfaces/repositories/`
+3. ✅ Implement Repository in `src/infrastructure/adapters/database/`
+4. ✅ Create Use Case in `src/application/use-cases/`
+5. ✅ Create DTOs in `src/application/dtos/`
+6. ✅ Create Server Action in `src/presentation/actions/[domain]/`
+7. ✅ Add UUID comments to all code blocks
+8. ✅ Log to development history
+9. ✅ Write tests
+
+---
+
+## 🚨 Golden Rules
+1. **Document Everything** – Each module must explain itself
+2. **Keep Code Simple** – Readable and maintainable over clever
+3. **Follow SRP** – One function, one responsibility
+4. **Track All Changes** – Use UUID-based development history logging
+5. **Validate Quality** – Linter and test checks required before completion
+6. **Use Correct Structure** – Organized by Clean Architecture layers
+7. **End Every Task with Documentation and Logging** – This is mandatory

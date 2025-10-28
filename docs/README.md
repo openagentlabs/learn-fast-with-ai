@@ -1,8 +1,18 @@
-# Deployment Documentation
+# Learn Fast with AI Documentation
 
 ## Overview
 
 This project uses Google Cloud Platform (GCP) for hosting a Next.js application deployed as a containerized service on Cloud Run. The deployment is fully automated through GitHub Actions CI/CD pipeline.
+
+## Documentation Index
+
+- **[Deployment Documentation](#deployment-documentation)** - Complete deployment process and CI/CD pipeline
+- **[Architecture Events](./ARCHITECTURE_EVENTS.md)** - Clean Architecture event lifecycle and event placement guidelines
+- **[Architecture Migration](./ARCHITECTURE_MIGRATION.md)** - Migration of lib/ modules to proper Clean Architecture locations
+
+---
+
+## Deployment Documentation
 
 ---
 
@@ -94,7 +104,7 @@ Step 9: Cloud Build - Execute Build Step
         │
         ├─ Step name: gcr.io/cloud-builders/docker
         ├─ Docker command: docker build
-        ├─ Dockerfile location: docker/Dockerfile
+        ├─ Dockerfile location: infrastructure/docker/Dockerfile
         ├─ Build context: . (project root)
         └─ Image tag: {REGION}-docker.pkg.dev/{PROJECT_ID}/{ARTIFACT_REPO}/{SERVICE_NAME}:{SHA}
         │
@@ -232,7 +242,7 @@ Step 20: Verify deployment success
 |-----------|---------|-------------|
 | **GitHub** | Source control | Repository: openagentlabs/learn-fast-with-ai |
 | **GitHub Actions** | CI/CD orchestration | Workflow: .github/workflows/deploy.yml |
-| **Cloud Build** | Container building | Config: cloudbuild.yaml, Dockerfile: docker/Dockerfile |
+| **Cloud Build** | Container building | Config: cloudbuild.yaml, Dockerfile: infrastructure/docker/Dockerfile |
 | **Artifact Registry** | Image storage | Location: europe-west2-docker.pkg.dev/keithtest001/nextjs-containers |
 | **Cloud Run** | Serverless runtime | Service: learn-fast-with-ai, Region: europe-west2 |
 
@@ -306,7 +316,7 @@ Step 3: Trigger Cloud Build
 │  Google Cloud Build                                     │
 │  ┌───────────────────────────────────────────────────┐  │
 │  │ Reads: cloudbuild.yaml                            │  │
-│  │  • Build Docker image from docker/Dockerfile      │  │
+│  │  • Build Docker image from infrastructure/docker/Dockerfile      │  │
 │  │  • Multi-stage build process:                     │  │
 │  │    1. Install dependencies (deps stage)           │  │
 │  │    2. Build Next.js app (builder stage)           │  │
@@ -381,7 +391,7 @@ steps:
     args:
       - 'build'
       - '-t', '${IMAGE_TAG}'
-      - '-f', 'docker/Dockerfile'
+      - '-f', 'infrastructure/docker/Dockerfile'
       - '.'
 
   # Step 2: Push to Artifact Registry
@@ -398,7 +408,7 @@ steps:
 - `_ARTIFACT_REPO`: Artifact Registry repository name
 - `SHORT_SHA`: Git commit SHA (passed from GitHub Actions)
 
-### 3. Dockerfile (`docker/Dockerfile`)
+### 3. Dockerfile (`infrastructure/docker/Dockerfile`)
 
 **Purpose**: Defines the container image build process
 
@@ -571,7 +581,7 @@ gcloud run services logs read learn-fast-with-ai \
 ### Local Build Testing
 ```bash
 # Build locally
-docker build -f docker/Dockerfile -t test-image .
+docker build -f infrastructure/docker/Dockerfile -t test-image .
 
 # Run locally
 docker run -p 3000:3000 test-image

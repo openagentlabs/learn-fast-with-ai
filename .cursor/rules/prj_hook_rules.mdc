@@ -8,7 +8,7 @@ alwaysApply: true
 Hooks are lifecycle functions that are called when specific events occur in the application. They provide a centralized way to execute code at important application lifecycle points without cluttering the main application logic.
 
 ### Hook Location
-- All hooks are located in: `/home/keith/Dev/TerraChatWeb/src/hooks/`
+- All hooks are located in: `/home/keith/Dev/learn-fast-with-ai/src/hooks/`
 - Each hook is a separate TypeScript file following the naming pattern: `[event_name]_hook.ts`
 - Example: `app_start_hook.ts`, `user_login_hook.ts`, `before_deploy_hook.ts`
 
@@ -59,7 +59,7 @@ export function hookName(/* parameters */): void | Promise<void> {
 
 #### 1. App Start Hook (`app_start_hook.ts`)
 
-**Location**: `/home/keith/Dev/TerraChatWeb/src/hooks/app_start_hook.ts`
+**Location**: `/home/keith/Dev/learn-fast-with-ai/src/hooks/app_start_hook.ts`
 
 **When Called**: 
 - Automatically invoked when the Next.js application initializes

@@ -1,292 +1,239 @@
-# Rules Conflict Analysis Report
+# Rules Files Conflict Analysis Report
+**Generated:** 2025-01-27
 
-**Generated:** 2025-01-18
-**Files Analyzed:** 13 rule files
-**Total Issues Found:** 15
+## Executive Summary
 
----
+After analyzing all 15 rules files in `.cursor/rules/`, I found **several critical conflicts and inconsistencies** that need to be resolved. The main issues are:
 
-## CRITICAL Issues (Must Fix)
-
-### Issue #1: Import File Extension Inconsistency ✅ RESOLVED
-- **Conflict Type:** Import Convention
-- **Affected Files:** `prj_general_rules.mdc`, `prj_testing_rule.mdc`
-- **Severity:** CRITICAL
-- **Status:** FIXED
-
-**Original Description:**
-`prj_general_rules.mdc` states: "**Never include `.js` extensions** in TypeScript imports (except in test files)."
-`prj_testing_rule.mdc` states: "Always use `.js` extension in imports (ES modules requirement)"
-
-**Original Conflict:** Both rules agree on the exception for test files, but there's ambiguity about what "except in test files" means in the general rules. The testing rules are more specific and clear.
-
-**Resolution Applied:**
-- ✅ Clarified in `prj_general_rules.mdc` with explicit examples showing source code vs test files
-- ✅ Enhanced `prj_testing_rule.mdc` with clear distinction between test file imports and source code imports
-- ✅ Added visual indicators (✅ CORRECT and ❌ WRONG) to both files
-- ✅ Updated AI Agent generation rules to reinforce the distinction
-- ✅ Added examples to the workflow section
+1. ❌ **Database architecture mismatch** between database rules and actual project structure
+2. ❌ **Wrong project path** in hook rules (references wrong project)
+3. ❌ **Inconsistent repository structure** references
+4. ✅ **Server actions rule** is now correctly added to web design rules
 
 ---
 
-### Issue #2: Server Action Naming Convention Contradiction
-- **Conflict Type:** Naming Convention
-- **Affected Files:** `prj_coding_rules.mdc`
-- **Severity:** CRITICAL
+## Critical Conflicts Identified
 
-**Description:**
-`prj_coding_rules.mdc` line 104 states: "Server Actions use **camelCase** with `SA` suffix"
-BUT line 87 states: "ALL file names MUST use snake_case format"
+### 1. Database Rules vs. Actual Project Structure ⚠️ CRITICAL
 
-**Conflict:** Server Actions are marked as an exception to snake_case with camelCase + SA suffix. However, line 87 says "ALL file names" without qualification, creating ambiguity.
+**Conflict:** `prj_database_rules.mdc` describes:
+- Models in `/src/lib/models/`
+- Repositories in `/src/lib/database/repositories/`
+- Using FireORM with Firestore
 
-**Rule 1 (prj_coding_rules.mdc line 87):** "MANDATORY: ALL file names MUST use snake_case format."
-**Rule 2 (prj_coding_rules.mdc line 104):** "Server actions use **camelCase** with `SA` suffix (not snake_case) to distinguish them from regular actions."
+**Actual Project Structure (from project_layout):**
+```
+src/
+├── domain/
+│   └── entities/          # Entities here (not /src/lib/models/)
+├── infrastructure/
+│   └── adapters/
+│       └── database/
+│           └── sqlite/    # SQLite, not Firestore!
+│               └── repositories/
+```
 
-**Recommended Resolution:**
-- Make line 87 more specific: "ALL file names MUST use snake_case format, EXCEPT server actions which use camelCase with SA suffix"
-- OR move the server action exception to a more prominent location
-- Add clarifying examples for the exception
+**Resolution Needed:**
+- Database rules file references WRONG database (Firestore/FireORM vs SQLite)
+- Database rules references WRONG paths (/src/lib/models/ vs /src/domain/entities/)
+- Database rules don't match the Clean Architecture pattern used in the project
 
----
+### 2. Hook Rules Wrong Project Path ❌ CRITICAL
 
-### Issue #3: Test Location Inconsistency
-- **Conflict Type:** File Structure
-- **Affected Files:** `prj_testing_rule.mdc`, general workspace rules
-- **Severity:** HIGH
+**Conflict:** `prj_hook_rules.mdc` Line 11:
+```typescript
+**Location:** `/home/keith/Dev/TerraChatWeb/src/hooks/`
+```
 
-**Description:**
-The workspace rules in the `prj_testing_rule.mdc` clearly state tests go in a `tests/` subfolder, BUT the workspace memory (memory ID: 5701938) states "Test code should be created in @test_workspace directory for this project."
+**Should Be:**
+```typescript
+**Location:** `/home/keith/Dev/learn-fast-with-ai/src/hooks/`
+```
 
-**Rule 1 (prj_testing_rule.mdc):** "All test files must be placed in a `tests/` subfolder within each module"
-**Memory 5701938:** "Test code should be created in @test_workspace directory"
+**Issue:** References a completely different project (TerraChatWeb vs learn-fast-with-ai)
 
-**Recommended Resolution:**
-- Memory 5701938 appears to be outdated or from a different project
-- The `tests/` subfolder pattern is consistent across multiple rule files
-- Recommend removing or updating memory 5701938 to match current testing rules
+### 3. Repository Pattern Inconsistency ⚠️
 
----
+**Database Rules Claim:**
+- Repositories in `/src/lib/database/repositories/`
+- Models in `/src/lib/models/`
 
-## HIGH Priority Issues
+**Architecture Rules Say:**
+- Repository interfaces in `/src/domain/interfaces/repositories/`
+- Repository implementations in `/src/infrastructure/adapters/database/`
+- Entities in `/src/domain/entities/`
 
-### Issue #4: Temporary Script Location Ambiguity
-- **Conflict Type:** File Structure
-- **Affected Files:** `prj_general_rules.mdc`, `prj_debuging_rules.mdc`
-- **Severity:** HIGH
+**Verification from project structure:**
+- ✅ Architecture rules are CORRECT
+- ❌ Database rules are WRONG
 
-**Description:**
-`prj_general_rules.mdc` states: "Temporary or debugging scripts must be stored in `/debuging/scripts/`."
-`prj_debuging_rules.mdc` states: "Store debugging artifacts in `/debuging/scratch/`"
+### 4. Database Technology Mismatch ❌
 
-**Conflict:** Both locations exist but serve slightly different purposes. The ambiguity is about WHEN to use each location.
+**Database Rules Say:**
+- Using Google Cloud Firestore
+- Using FireORM ORM
+- Project ID: keithtest001
+- Region: europe-west2
 
-**Rule 1 (prj_general_rules.mdc):** Scripts go in `/debuging/scripts/`
-**Rule 2 (prj_debuging_rules.mdc):** Debugging artifacts go in `/debuging/scratch/`
+**Actual Project:**
+- Uses SQLite (data/app.db exists)
+- Uses standard TypeScript repositories
+- This is a local development project
 
-**Recommended Resolution:**
-- Clearly define: scripts vs artifacts
-- Add decision tree for when to use each location
-- Maybe scripts = executable files, scratch = analysis/notes/temp data
-
----
-
-### Issue #5: Documentation Section Count Mismatch
-- **Conflict Type:** Documentation Requirements
-- **Affected Files:** `prj_documentaton_rules.mdc`, `prj_coding_rules.mdc`
-- **Severity:** MEDIUM
-
-**Description:**
-`prj_documentaton_rules.mdc` specifies 7 required sections for README.md files.
-`prj_coding_rules.mdc` JSDoc section lists different required fields.
-
-**Not necessarily a conflict, but inconsistency** - should standardize what's mandatory vs recommended across all documentation.
-
-**Recommended Resolution:**
-- Create a unified documentation standard
-- Make it clear which sections are mandatory vs recommended
-- Provide examples for each module type
+**Impact:** Entire database rules file is for the WRONG project/technology
 
 ---
 
-### Issue #6: Class Configuration Object Naming Ambiguity
-- **Conflict Type:** Code Structure
-- **Affected Files:** `prj_coding_rules.mdc`
-- **Severity:** MEDIUM
+## Conflicting Files Status
 
-**Description:**
-Lines 246-283 define configuration objects as `[ClassName]Config`, but there's no example of what happens when class name contains multiple words like `UserService`.
+### ✅ Web Design Rules - FIXED
+- **Status:** Now includes server actions rule
+- **Conflict:** Previously missing server actions guidance
+- **Resolution:** Added critical server actions section referencing architecture rules
 
-**Question:** Is it `UserServiceConfig` or `UserServiceConfig`? The examples show single-word classes only.
+### ❌ Database Rules - NEEDS MAJOR REWRITE
+- **Status:** Completely wrong for this project
+- **Issues:**
+  - References wrong database (Firestore vs SQLite)
+  - References wrong paths (/src/lib/ vs /src/domain/, /src/infrastructure/)
+  - References wrong ORM (FireORM vs standard TypeScript)
+  - Entire file seems copied from another project
 
-**Recommended Resolution:**
-- Add examples for multi-word class names
-- Clarify PascalCase applies to all words
-- Provide examples: `UserServiceConfig`, `FlashcardServiceConfig`
+### ❌ Hook Rules - WRONG PATH
+- **Status:** Contains wrong project path
+- **Issue:** References `/home/keith/Dev/TerraChatWeb/` instead of current project
+- **Fix:** Replace all paths with correct project path
 
----
+### ❌ Debugging Rules - WRONG PROJECT NAME
+- **Status:** References TerraChatWeb in title and paths
+- **Issue:** Line 9 mentions "TerraChatWeb application"
+- **Should:** Reference "learn-fast-with-ai"
 
-## MEDIUM Priority Issues
+### ✅ Architecture Rules - CONSISTENT
+- **Status:** Matches actual project structure
+- **No issues found**
 
-### Issue #7: Hook File Naming vs Component File Naming
-- **Conflict Type:** Naming Convention
-- **Affected Files:** `prj_coding_rules.mdc`, `prj_hook_rules.mdc`
-- **Severity:** MEDIUM
+### ✅ Coding Rules - CONSISTENT
+- **Status:** Matches coding standards
+- **No conflicts found**
 
-**Description:**
-Hooks use `[event_name]_hook.ts` pattern (snake_case), but the hook rules specify this explicitly. Component rules also specify snake_case for files.
+### ✅ Testing Rules - CONSISTENT
+- **Status:** References AVA framework correctly
+- **No conflicts found**
 
-**No direct conflict** but should cross-reference for consistency.
-
----
-
-### Issue #8: Database Service Naming Convention
-- **Conflict Type:** Naming Convention
-- **Affected Files:** `prj_database_rules.mdc`, `prj_coding_rules.mdc`
-- **Severity:** MEDIUM
-
-**Description:**
-`prj_database_rules.mdc` specifies service files should be named like `user_service.ts` (snake_case), which aligns with general coding rules.
-
-**Status:** Consistent ✅
-
----
-
-### Issue #9: Git Commit Message Format
-- **Conflict Type:** Workflow
-- **Affected Files:** `prj_git_rules.mdc`, `prj_coding_rules.mdc` (development history)
-- **Severity:** MEDIUM
-
-**Description:**
-Git rules specify conventional commit format, and coding rules specify UUID in development history. Need to ensure UUID tracking doesn't conflict with git workflow.
-
-**No direct conflict** but should clarify relationship between UUIDs in code and git commits.
+### ✅ Git Rules - CONSISTENT
+- **Status:** References correct repository and deployment
+- **No conflicts found**
 
 ---
 
-## LOW Priority Issues
+## Recommended Actions
 
-### Issue #10: Minor Typo in MCP Servers File
-- **Conflict Type:** Documentation Quality
-- **Affected Files:** `prj_mcp_servers.mdc`
-- **Severity:** LOW
+### Priority 1: Critical Fixes (Breaking)
 
-**Description:**
-Line 9 has typo: "CRITICAL: Read and follow ALL rules before generatin code" (should be "generating")
-Line 11 has typo: "Rules to be follwed" (should be "followed")
+1. **Delete or Rewrite Database Rules** (`prj_database_rules.mdc`)
+   - Current file is for entirely different project
+   - Either delete it or completely rewrite for SQLite + Clean Architecture
+   - Options:
+     - Option A: Delete the file (recommended if not using Firestore)
+     - Option B: Rewrite entire file for SQLite architecture
 
-**Recommended Resolution:** Fix typos
+2. **Fix Hook Rules Path** (`prj_hook_rules.mdc`)
+   - Replace `/home/keith/Dev/TerraChatWeb/src/hooks/`
+   - With `/home/keith/Dev/learn-fast-with-ai/src/hooks/`
+   - Fix on line 11 and any other references
 
----
+3. **Fix Debugging Rules Title** (`prj_debuging_rules.mdc`)
+   - Replace "TerraChatWeb" with "learn-fast-with-ai"
+   - Update project name references throughout
 
-### Issue #11: Logging Rules File Name Inconsistency
-- **Conflict Type:** File Naming
-- **Affected Files:** `prj_logging_rule.mdc`
-- **Severity:** LOW
+### Priority 2: Verify Other Rules
 
-**Description:**
-Most rule files use `.mdc` extension, but logging rules file is named `prj_logging_rule.mdc` (singular "rule" vs "rules" in others like `prj_coding_rules.mdc`).
+4. **Check Configuration Rules** (`prj_config_rules.mdc`)
+   - Verify AppConfig paths match actual project structure
+   - Confirm config location is correct
 
-**Recommended Resolution:**
-- Standardize naming: either all singular or all plural
-- OR create mapping/dictionary of accepted names
-
----
-
-### Issue #12: Test Location Memory Inconsistency
-- **Conflict Type:** Memory vs Rules
-- **Affected Files:** Workspace memory, `prj_testing_rule.mdc`
-- **Severity:** LOW (already noted in Issue #3)
+5. **Verify Infrastructure Rules** (`prj_infrastructure_rules.mdc`)
+   - Confirm GCP deployment info matches actual setup
+   - Verify Cloud Run service details
 
 ---
 
-### Issue #13: UUID Tracking File Format
-- **Conflict Type:** Documentation
-- **Affected Files:** `prj_uuid_tracking_rule.md`
-- **Severity:** LOW
+## Specific Line-by-Line Conflicts
 
-**Description:**
-The UUID tracking rule file uses `.md` extension instead of `.mdc` like other rules files.
+### Database Rules (prj_database_rules.mdc)
 
-**Recommended Resolution:**
-- Consider renaming to `.mdc` for consistency
-- OR document that both extensions are acceptable
+**Lines 28-31:** Define import aliases for models and database
+```typescript
+**Import Aliases:**
+- Use `@database/` for database infrastructure
+- Use `@models/` for all database models
+```
+**CONFLICT:** Project uses Clean Architecture with different structure
 
----
+**Lines 38-56:** Repository structure
+```
+src/lib/database/
+src/lib/models/
+```
+**CONFLICT:** Should be `src/infrastructure/adapters/database/` and `src/domain/entities/`
 
-## Ambiguities (Not Conflicts)
+**Lines 82-99:** Database configuration
+- Claims using Firestore
+- Claims FireORM
+- Claims GCP project keithtest001
+**CONFLICT:** Project uses SQLite locally
 
-### Ambiguity #1: "System Boundaries" for Zod Validation
-- **Affected Files:** `prj_coding_rules.mdc`
-- **Severity:** MEDIUM
+### Hook Rules (prj_hook_rules.mdc)
 
-**Description:**
-The rules specify "validate at system boundaries" but the definition of "system boundary" is somewhat vague. The examples help but a clearer decision tree would help.
+**Line 11:** Wrong path
+**Line 62:** Wrong path in example
+**Line 100:** Wrong project references
 
----
+### Debugging Rules (prj_debuging_rules.mdc)
 
-### Ambiguity #2: When to Create New Hooks
-- **Affected Files:** `prj_hook_rules.mdc`
-- **Severity:** LOW
-
-**Description:**
-Hook rules describe how to create hooks but don't clearly define WHEN to create a new hook vs adding to existing hooks.
-
----
-
-## Summary
-
-### Issues by Severity:
-- **CRITICAL:** 3 issues requiring immediate attention
-- **HIGH:** 2 issues that should be fixed soon
-- **MEDIUM:** 4 issues (nice to have fixes)
-- **LOW:** 3 issues (minor improvements)
-
-### Issues by Category:
-- **Naming Conventions:** 4 issues
-- **File Structure:** 3 issues
-- **Documentation:** 2 issues
-- **Import Conventions:** 2 issues
-- **Workflow:** 2 issues
-- **Documentation Quality:** 2 issues
-
-### Top Priority Fixes:
-1. Clarify server action naming exception
-2. Standardize import extension rules between general and testing
-3. Resolve test location memory vs current rules
-4. Clarify temporary file locations (scripts vs scratch)
-5. Fix typos in MCP servers documentation
+**Line 9:** Mentions "TerraChatWeb application"
+**Line 31:** References wrong project path `/home/keith/Dev/TerraChatWeb/`
+**Line 59:** References wrong project path
 
 ---
 
-## Recommended Next Steps
+## Summary of Conflicts
 
-**Option A:** Fix all CRITICAL issues automatically
-**Option B:** Review each issue individually before fixing
-**Option C:** Generate detailed diff showing proposed changes
-**Option D:** Focus only on CRITICAL issues first, then HIGH priority
-**Option E:** User provides custom approach
+| File | Issue | Severity | Fix Required |
+|------|-------|----------|--------------|
+| `prj_database_rules.mdc` | Wrong database, wrong paths | 🔴 CRITICAL | Delete or complete rewrite |
+| `prj_hook_rules.mdc` | Wrong project path | 🔴 CRITICAL | Fix paths (3 occurrences) |
+| `prj_debuging_rules.mdc` | Wrong project name | 🟡 HIGH | Fix project name references |
+| `prj_web_design_rules.mdc` | ✅ FIXED | ✅ RESOLVED | None - was fixed |
+| `prj_architecture_rules.mdc` | ✅ CORRECT | ✅ OK | None |
+| `prj_coding_rules.mdc` | ✅ CORRECT | ✅ OK | None |
+| `prj_testing_rule.mdc` | ✅ CORRECT | ✅ OK | None |
+| `prj_git_rules.mdc` | ✅ CORRECT | ✅ OK | None |
+| `prj_typescript_rules.mdc` | ✅ CORRECT | ✅ OK | None |
+| `prj_documentaton_rules.mdc` | ✅ CORRECT | ✅ OK | None |
+| `prj_config_rules.mdc` | ⚠️ VERIFY | 🟢 LOW | Verify paths match |
+| `prj_infrastructure_rules.mdc` | ⚠️ VERIFY | 🟢 LOW | Verify GCP info |
+| `prj_logging_rule.mdc` | ✅ CORRECT | ✅ OK | None |
+| `prj_uuid_tracking_rule.md` | ✅ CORRECT | ✅ OK | None |
+| `prj_mcp_servers.mdc` | Empty placeholder | ⚠️ LOW | Add content if needed |
 
 ---
 
-## Detailed Analysis Notes
+## Recommendations
 
-### Most Consistent Rules:
-- ✅ File naming (snake_case) is well-established
-- ✅ Test location (tests/ subfolder) is clear
-- ✅ UUID tracking requirements are consistent
-- ✅ Git workflow is well-defined
+1. **Immediate Action:** Fix the hook rules and debugging rules paths (quick fixes)
+2. **Short-term:** Delete database rules file OR completely rewrite for this project
+3. **Long-term:** Audit all remaining rules for consistency
+4. **Documentation:** Update project README to clarify which rules apply
 
-### Areas Needing Clarification:
-- ⚠️ Server Actions naming (exception to snake_case)
-- ⚠️ Temporary file storage (scripts vs scratch)
-- ⚠️ Import extensions (general code vs tests)
-- ⚠️ Documentation sections (mandatory vs optional)
+---
 
-### Suggested Improvements:
-1. Create a decision tree/chart for file locations
-2. Add cross-references between related rules
-3. Provide more examples for edge cases
-4. Standardize file extensions (.mdc vs .md)
-5. Create a "Quick Reference" card combining all rules
+## Next Steps
 
+1. Ask user which database they want to use:
+   - SQLite (current) - delete database rules
+   - Firestore (future) - rewrite database rules
+2. Fix hook rules paths
+3. Fix debugging rules project name
+4. Verify infrastructure rules match actual deployment
