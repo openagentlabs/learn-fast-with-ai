@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+// Initialize application services at startup
+import "@/hooks/app_start_hook";
 
 export const metadata: Metadata = {
   title: "Learn Fast with AI",
