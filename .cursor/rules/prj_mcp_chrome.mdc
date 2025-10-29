@@ -1,0 +1,206 @@
+---
+alwaysApply: true
+---
+
+# Chrome DevTools MCP Server
+
+## Overview
+
+**🚨 PRIMARY TOOL:** Chrome DevTools MCP provides **browser automation and debugging capabilities** for testing, debugging, and interacting with web pages directly from the AI agent.
+
+**Use Chrome MCP for:** Visual debugging, UI testing, page interaction, network analysis, performance profiling, and browser automation tasks.
+
+## Workflow (MANDATORY)
+
+1. **List/Select Page**: `mcp_chrome-devtools_list_pages` → Get available pages
+2. **Select Target**: `mcp_chrome-devtools_select_page` → Choose page by index
+3. **Navigate/Interact**: Navigate, take snapshots, interact with elements
+4. **Debug**: Check console, network requests, take screenshots
+5. **Analyze**: Review captured data, errors, performance metrics
+
+## Available Functions
+
+### Page Management
+- `list_pages` - List all open browser pages
+- `select_page` - Select page by index for subsequent operations
+- `new_page` - Create new page/tab with optional URL
+- `close_page` - Close page by index (cannot close last page)
+- `navigate_page` - Navigate to URL
+- `navigate_page_history` - Navigate back/forward in history
+- `resize_page` - Set page viewport dimensions
+
+### Page Inspection
+- `take_snapshot` - Get text snapshot of page (a11y tree with element UIDs)
+- `take_screenshot` - Capture visual screenshot (PNG/JPEG/WebP)
+- `list_console_messages` - List all console messages since last navigation
+- `get_console_message` - Get detailed console message by ID
+- `list_network_requests` - List all network requests since last navigation
+- `get_network_request` - Get detailed network request by ID
+
+### User Interaction
+- `click` - Click element by UID (with double-click support)
+- `hover` - Hover over element by UID
+- `fill` - Fill input/textarea/select by UID
+- `fill_form` - Fill multiple form elements at once
+- `drag` - Drag element from one UID to another
+- `upload_file` - Upload file through file input element
+- `handle_dialog` - Accept/dismiss browser dialogs
+
+### Advanced Operations
+- `evaluate_script` - Execute JavaScript in page context (returns JSON-serializable results)
+- `wait_for` - Wait for text to appear on page (with timeout)
+- `emulate_network` - Simulate network conditions (Slow 3G, Fast 3G, Offline, etc.)
+- `emulate_cpu` - Throttle CPU performance (1-20x slowdown)
+- `performance_start_trace` - Start performance profiling
+- `performance_stop_trace` - Stop performance profiling
+- `performance_analyze_insight` - Get detailed performance insights
+
+## AI Agent Rules (MANDATORY)
+
+1. **ALWAYS start with snapshot** - Use `take_snapshot` to get element UIDs before interactions
+2. **Select page first** - Always `select_page` before performing operations
+3. **Check console after navigation** - Use `list_console_messages` after page loads
+4. **Use UIDs from snapshots** - Element interactions require UIDs from `take_snapshot`
+5. **Clean up pages** - Close test pages after debugging sessions
+6. **Combine inspection methods** - Use snapshot + screenshot + console for complete picture
+
+## When to Use Chrome MCP
+
+### ✅ Use For:
+- **Visual debugging** - Screenshots and layout issues
+- **UI testing** - User interaction flows and form testing
+- **Console errors** - JavaScript errors and warnings
+- **Network debugging** - Failed requests, slow responses
+- **Performance profiling** - Core Web Vitals, slow pages
+- **Accessibility testing** - a11y tree inspection
+- **Responsive design** - Testing different viewport sizes
+- **Form interactions** - Testing form submissions and validations
+- **JavaScript execution** - Testing code in browser context
+
+### ❌ Don't Use For:
+- **Server-side debugging** - Use logging instead
+- **API endpoint testing** - Use curl/Postman/API routes
+- **Database debugging** - Use database tools
+- **Non-browser JavaScript** - Node.js server code
+- **Code that doesn't need browser** - Terminal/CLI operations
+
+## Usage Examples
+
+### Basic Page Inspection:
+1. `list_pages` → Get page index
+2. `select_page(0)` → Select first page
+3. `navigate_page("https://example.com")` → Navigate to URL
+4. `take_snapshot()` → Get page structure with UIDs
+5. `list_console_messages()` → Check for errors
+
+### Debugging UI Issues:
+1. `take_snapshot(verbose=true)` → Get detailed page structure
+2. `take_screenshot(fullPage=true)` → Capture full page visual
+3. `list_console_messages(types=["error", "warn"])` → Filter errors/warnings
+4. `list_network_requests(resourceTypes=["xhr", "fetch"])` → Check API calls
+
+### Testing User Interactions:
+1. `take_snapshot()` → Get element UIDs
+2. `fill({uid: "input-uid", value: "test value"})` → Fill input
+3. `click({uid: "button-uid"})` → Click button
+4. `wait_for("Success message")` → Wait for result
+5. `take_screenshot()` → Capture final state
+
+### Performance Profiling:
+1. `navigate_page("https://example.com")` → Navigate to page
+2. `performance_start_trace(reload=true, autoStop=false)` → Start trace
+3. Wait for page to fully load
+4. `performance_stop_trace()` → Stop trace
+5. `performance_analyze_insight("LCPBreakdown")` → Analyze specific metric
+
+## Debugging Workflow
+
+### Standard Debugging Pattern:
+```
+1. List pages → select target page
+2. Navigate to problematic URL
+3. Take snapshot → get element UIDs
+4. Check console messages → identify errors
+5. List network requests → find failed calls
+6. Take screenshot → capture visual state
+7. Interact with elements if needed
+8. Re-check console and network after interactions
+9. Save artifacts (screenshots to debuging/images/)
+10. Clean up test pages
+```
+
+### Error Investigation:
+1. `list_console_messages(types=["error"])` → Get all errors
+2. `get_console_message(msgid)` → Get error details
+3. `list_network_requests(resourceTypes=["xhr", "fetch"])` → Check failed requests
+4. `get_network_request(reqid)` → Inspect request details
+5. `take_screenshot()` → Visual context of error state
+
+### Network Debugging:
+1. `emulate_network("Slow 3G")` → Simulate slow connection
+2. `navigate_page(url)` → Load page under slow conditions
+3. `list_network_requests()` → Review all requests
+4. `get_network_request(reqid)` → Inspect slow/failed requests
+5. `emulate_network("No emulation")` → Reset network
+
+## Best Practices
+
+### Element Interaction:
+- **Always snapshot first** - UIDs are required for all interactions
+- **Use verbose snapshots** - When you need full element details
+- **Wait for elements** - Use `wait_for()` before interacting with dynamic content
+- **Check element exists** - Verify UID in snapshot before clicking/filling
+
+### Performance:
+- **Use appropriate timeouts** - Default timeout used if not specified
+- **Stop traces manually** - If `autoStop=false`, remember to stop trace
+- **Reset emulation** - Always reset network/CPU emulation after testing
+
+### Screenshots:
+- **Full page vs viewport** - Use `fullPage=true` for layout debugging
+- **Save to debuging/images/** - Store screenshots for reference
+- **Descriptive filenames** - Include context (e.g., `error-state-2025-01-15.png`)
+
+### Cleanup:
+- **Close test pages** - Use `close_page()` after debugging
+- **Don't close last page** - Last page cannot be closed
+- **Reset state** - Reset network/CPU emulation before finishing
+
+## Project Integration
+
+Chrome MCP is essential for:
+- **UI debugging** - Visual issues, layout problems, responsive design
+- **E2E testing** - User flows, form submissions, navigation
+- **Performance testing** - Core Web Vitals, slow page detection
+- **Error diagnosis** - Console errors, network failures, JavaScript issues
+- **Accessibility** - Testing a11y tree structure and semantics
+
+## Common Patterns
+
+### Testing Form Submission:
+```
+1. navigate_page(url)
+2. take_snapshot()
+3. fill_form([{uid: "email-uid", value: "test@example.com"}, ...])
+4. click({uid: "submit-uid"})
+5. wait_for("Success")
+6. take_screenshot()
+```
+
+### Checking Page Load:
+```
+1. navigate_page(url)
+2. take_snapshot()
+3. list_console_messages(types=["error", "warn"])
+4. list_network_requests()
+5. take_screenshot(fullPage=true)
+```
+
+### Performance Testing:
+```
+1. performance_start_trace(reload=true, autoStop=true)
+2. navigate_page(url)
+3. Wait for autoStop or manually stop
+4. performance_analyze_insight("DocumentLatency")
+5. performance_analyze_insight("LCPBreakdown")
+```

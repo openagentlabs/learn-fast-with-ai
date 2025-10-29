@@ -2,12 +2,12 @@
 alwaysApply: true
 ---
 
-# Learn Fast with AI Project Architecture
+# Project Architecture - This defines the current project architeture been used
 
 ## 📚 Knowledge
 
-### Project Architecture: Clean Architecture
-The project follows **Clean Architecture** with 5 layers:
+### Project Architecture: Clean Architecture + Next.js
+The project follows **Clean Architecture** with Next.js App Router conventions:
 
 ```
 src/
@@ -15,27 +15,44 @@ src/
 ├── application/      # Use cases and orchestration
 ├── infrastructure/   # External adapters (DB, AI, etc.)
 ├── presentation/     # Request/response handling (actions, handlers)
-└── app/             # Next.js routing (thin adapters)
+├── app/             # Next.js routing & pages (presentation layer)
+└── lib/             # Shared utilities, config, logging
 ```
+
+**Next.js Layout:**
+- Follows Next.js default conventions (`src/app/`, `src/lib/`)
+- `src/app/` contains Next.js routes, pages, and API routes
+- `src/lib/` contains shared utilities, configuration, logging
+- All business logic lives in domain/application/infrastructure layers
 
 **Layer Dependency Flow (CRITICAL):**
 ```
 Domain ← Application ← Infrastructure
 Domain ← Application ← Presentation
-Domain ← Application ← App
+Domain ← Application ← App (part of Presentation)
 ```
+
+**How `app/` Fits Into Presentation Layer:**
+- `src/app/` is the **Next.js routing layer** that belongs to the presentation layer
+- Pages (`page.tsx`) call Server Actions from `src/presentation/actions/`
+- API routes (`route.ts`) call handlers from `src/presentation/handlers/`
+- `app/` should be **thin adapters** - only routing, no business logic
+- Business logic stays in Application layer; `app/` orchestrates presentation
 
 **Allowed:**
 - ✅ Application uses Domain interfaces
 - ✅ Infrastructure implements Domain interfaces
-- ✅ Presentation uses Application use cases
-- ✅ App uses Presentation actions/handlers
+- ✅ Presentation (actions/handlers) uses Application use cases
+- ✅ App (pages/routes) uses Presentation actions/handlers
+- ✅ App pages can import from `src/lib/` for utilities
 
 **Forbidden:**
 - ❌ Domain must NOT import from any other layer
-- ❌ Domain must NOT know about infrastructure
-- ❌ Application must NOT know about infrastructure details
+- ❌ Domain must NOT know about infrastructure or Next.js
+- ❌ Application must NOT know about infrastructure details or Next.js
 - ❌ Presentation must NOT access Infrastructure directly
+- ❌ App pages must NOT call use cases directly (use actions/handlers)
+- ❌ App pages must NOT contain business logic
 
 ### Layer Responsibilities
 
@@ -44,10 +61,26 @@ Domain ← Application ← App
 | **Domain** | Business entities, interfaces | `User.ts`, `IUserRepository.ts` |
 | **Application** | Use cases, DTOs | `CreateUserUseCase.ts`, `FlashcardDTO.ts` |
 | **Infrastructure** | Repository implementations, AI services, DB | `UserRepository.ts`, `GeminiAIModel.ts` |
-| **Presentation** | Server actions, handlers | `actions.ts`, `UserHandler.ts` |
-| **App** | Next.js routes, pages | `route.ts`, `page.tsx` |
+| **Presentation** | Server actions, handlers | `src/presentation/actions/actions.ts`, `src/presentation/handlers/UserHandler.ts` |
+| **App** (Presentation) | Next.js routes, pages, layouts | `src/app/api/[resource]/route.ts`, `src/app/(pages)/page.tsx`, `src/app/layout.tsx` |
+| **Lib** | Shared utilities, config, logging | `src/lib/config/`, `src/lib/logging/` |
 
-### Code Placement by Type
+### Next.js Conventions & Rules
+
+**App Router Structure:**
+- Use Next.js App Router conventions: `src/app/[route]/page.tsx` for pages
+- Route groups: `src/app/(pages)/` for organization
+- API routes: `src/app/api/[resource]/route.ts` (thin wrappers only)
+- Layouts: `src/app/layout.tsx` for root layout
+
+**App Folder Rules:**
+- Pages are **thin** - only handle routing and UI rendering
+- Pages call Server Actions (not use cases directly)
+- API routes call handlers (not use cases directly)
+- No business logic in `app/` folder - delegate to presentation layer
+- Use Server Components by default, Client Components when needed (`'use client'`)
+
+**Code Placement by Type**
 
 | Type | Location | Example |
 |------|----------|---------|

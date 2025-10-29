@@ -60,20 +60,21 @@ function generateBuildInfo() {
     'utf-8'
   );
   
-  // Also write to src/lib/build-info.json for direct imports
+  // Ensure src/lib directory exists
   const libDir = path.join(projectRoot, 'src', 'lib');
   if (!fs.existsSync(libDir)) {
     fs.mkdirSync(libDir, { recursive: true });
   }
   
-  const libBuildInfoPath = path.join(libDir, 'build-info.json');
-  fs.writeFileSync(
-    libBuildInfoPath,
-    JSON.stringify(buildInfo, null, 2),
-    'utf-8'
-  );
+  // Note: JSON file will be written to build-info subdirectory with TypeScript file
   
   // Also generate TypeScript constant file for type-safe access
+  // Place in build-info subdirectory to match service import path
+  const buildInfoDir = path.join(libDir, 'build-info');
+  if (!fs.existsSync(buildInfoDir)) {
+    fs.mkdirSync(buildInfoDir, { recursive: true });
+  }
+
   const tsContent = `// UUID: 8a7f3e2d-1c9b-4f8a-b3e5-6d2c9a7f1e3b
 // Auto-generated build info - DO NOT EDIT MANUALLY
 // Generated at build time by scripts/generate-build-info.js
@@ -95,8 +96,16 @@ export const BUILD_TIMESTAMP = '${buildInfo.buildTimestamp}';
 export const BUILD_DATE = '${buildInfo.buildDate}';
 `;
   
-  const tsBuildInfoPath = path.join(libDir, 'build-info.ts');
+  const tsBuildInfoPath = path.join(buildInfoDir, 'build-info.ts');
   fs.writeFileSync(tsBuildInfoPath, tsContent, 'utf-8');
+  
+  // Also update JSON file location to be consistent
+  const buildInfoJsonPath = path.join(buildInfoDir, 'build-info.json');
+  fs.writeFileSync(
+    buildInfoJsonPath,
+    JSON.stringify(buildInfo, null, 2),
+    'utf-8'
+  );
   
   console.log('✅ Build info generated successfully:');
   console.log(`   Build ID: ${buildInfo.buildId}`);

@@ -14,6 +14,21 @@ export interface BuildInfo {
   buildDate: string;
 }
 
+// Explicit import to ensure Next.js includes this file in standalone build
+// This file is generated at build time by scripts/generate-build-info.js
+// Wrapped in try-catch to handle cases where file doesn't exist during development
+let staticBuildInfo: BuildInfo | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const buildInfoModule = require('./build-info');
+  if (buildInfoModule?.buildInfo) {
+    staticBuildInfo = buildInfoModule.buildInfo;
+  }
+} catch {
+  // File doesn't exist yet - this is expected during development or if script hasn't run
+  // Will fall back to dynamic require or JSON file
+}
+
 /**
  * BuildInfoService - Service for accessing build-time information
  * 
@@ -34,17 +49,25 @@ class BuildInfoService {
       return this.buildInfo;
     }
 
-    // Try to import the generated build-info.ts file
-    // During Next.js build, this file may not exist yet, which is fine
-    // We'll fall back to JSON file or default values
+    // First try static import (ensures Next.js includes it in standalone build)
+    if (staticBuildInfo) {
+      this.buildInfo = staticBuildInfo;
+      this.serviceLogger.debug('Build info loaded from static import', {
+        buildId: this.buildInfo.buildId,
+        shortSha: this.buildInfo.shortSha
+      });
+      return this.buildInfo;
+    }
+
+    // Fallback: Try dynamic require of the generated build-info.ts file
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const buildInfoModule = require('../build-info/build-info');
+      const buildInfoModule = require('./build-info');
       
       if (buildInfoModule?.buildInfo) {
         this.buildInfo = buildInfoModule.buildInfo;
         if (this.buildInfo) {
-          this.serviceLogger.debug('Build info loaded successfully', {
+          this.serviceLogger.debug('Build info loaded from dynamic require', {
             buildId: this.buildInfo.buildId,
             shortSha: this.buildInfo.shortSha
           });
@@ -56,13 +79,13 @@ class BuildInfoService {
       // This is expected - continue to JSON fallback
     }
 
-    // Fallback: Try to read from JSON file
+    // Fallback: Try to read from JSON file (in build-info subdirectory)
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const fs = require('node:fs');
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const path = require('node:path');
-      const buildInfoPath = path.join(process.cwd(), 'src', 'lib', 'build-info.json');
+      const buildInfoPath = path.join(process.cwd(), 'src', 'lib', 'build-info', 'build-info.json');
       
       if (fs.existsSync(buildInfoPath)) {
         const fileContent = fs.readFileSync(buildInfoPath, 'utf-8');

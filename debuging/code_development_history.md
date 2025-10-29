@@ -45,5 +45,18 @@ This file tracks all code changes made to the project, including UUID references
 - Service provides fallback values when build info unavailable
 - Route handler includes error handling
 
+**Follow-up Fix:**
+- Fixed .gitignore pattern for generated build-info files
+- Verified GitHub Actions build succeeds with build ID generation
+- All deployment steps complete successfully
+
+**Critical Fix - Build ID Import Path:**
+- Fixed path mismatch: Script now generates `src/lib/build-info/build-info.ts` (matching service import)
+- Updated service to use explicit static import for Next.js standalone build detection
+- Updated JSON fallback path to match new file location
+- Updated .gitignore patterns for new file paths
+- Verified file generation and TypeScript compilation
+- Service now loads build ID correctly at runtime
+
 ---
 

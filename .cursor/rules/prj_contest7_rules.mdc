@@ -1,0 +1,42 @@
+---
+alwaysApply: true
+---
+
+# Context7 MCP Server
+
+## Overview
+
+**🚨 PRIMARY SOURCE:** Context7 MCP provides **LATEST documentation** for programming languages, libraries, frameworks, components, packages (npm, PyPI, crates.io), tools (Docker, Terraform, Kubernetes), and any publicly documented code artifact.
+
+**ALWAYS use Context7 FIRST** before web search or assumptions when implementing features, resolving questions, or understanding any library/framework/tool.
+
+## Workflow (MANDATORY)
+
+1. **Resolve Library ID**: `mcp_context7_resolve-library-id` with libraryName (e.g., "react", "next.js", "typescript")
+2. **Get Documentation**: `mcp_context7_get-library-docs` with resolved ID, optional topic filter, and token limit (default: 5000)
+
+## AI Agent Rules (MANDATORY)
+
+1. **ALWAYS** use Context7 MCP before web search or making assumptions
+2. **Resolve ID first** unless user provides one explicitly
+3. **Use topic filters** for focused documentation when needed
+4. **Prefer Context7 patterns** over existing code if different
+5. **Ensure code matches** latest Context7 documentation patterns
+6. **Never skip** Context7 when library/framework/tool is available
+
+## Usage Examples
+
+**Next.js Server Actions:**
+1. Resolve: `mcp_context7_resolve-library-id` → "next.js"
+2. Get: `mcp_context7_get-library-docs` with topic: "server actions"
+
+**React Hooks:**
+1. Resolve: `mcp_context7_resolve-library-id` → "react"
+2. Get: `mcp_context7_get-library-docs` with topic: "hooks"
+
+## Project Integration
+
+Context7 MCP is essential for:
+- Next.js Server Actions, React/Next.js components, TypeScript
+- AVA testing framework, shadcn/ui, Tailwind CSS
+- Docker, Terraform, GCP infrastructure
