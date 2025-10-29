@@ -2,7 +2,7 @@
 // Build ID info route - Serves build information at /info/build_id
 
 import { NextResponse } from 'next/server';
-import { buildInfoService } from '@/lib/build-info';
+import { buildInfoService } from '@/lib/build-info/BuildInfoService';
 import { logger } from '@/lib/logging';
 
 /**
