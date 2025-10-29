@@ -5,6 +5,8 @@ steps:
       - 'build'
       - '-t'
       - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REPO}/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '--build-arg'
+      - 'GIT_COMMIT_SHA=${SHORT_SHA}'
       - '-f'
       - 'infrastructure/docker/Dockerfile'
       - '.'

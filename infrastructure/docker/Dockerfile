@@ -22,6 +22,12 @@ COPY . .
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Generate build info (build ID, git SHA, timestamp)
+# Pass GIT_COMMIT_SHA from build args if available
+ARG GIT_COMMIT_SHA=
+ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA}
+RUN node scripts/generate-build-info.js
+
 # Build the Next.js application
 RUN npm run build
 

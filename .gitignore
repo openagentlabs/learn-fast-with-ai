@@ -91,3 +91,8 @@ override.tf.json
 *.tmp
 *.temp
 .cache/
+
+# Generated build info files (created during Docker build)
+src/lib/build-info/build-info.ts
+src/lib/build-info/build-info.json
+public/build-info.json
