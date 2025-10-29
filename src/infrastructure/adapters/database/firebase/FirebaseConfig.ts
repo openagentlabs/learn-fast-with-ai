@@ -5,6 +5,7 @@ import admin from 'firebase-admin';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { logger } from '@/infrastructure/adapters/logging';
+import { isProduction } from '@/lib/utils/environment';
 
 /**
  * Firebase configuration class
@@ -30,21 +31,6 @@ export class FirebaseConfig {
   }
 
   /**
-   * Check if running in production environment
-   * Detects Cloud Run by checking for K_SERVICE environment variable
-   * Also checks NODE_ENV for additional safety
-   * @returns True if in production
-   */
-  private isProduction(): boolean {
-    // Cloud Run sets K_SERVICE environment variable
-    const isCloudRun = !!process.env.K_SERVICE;
-    // Also check NODE_ENV
-    const isNodeEnvProduction = process.env.NODE_ENV === 'production';
-    
-    return isCloudRun || isNodeEnvProduction;
-  }
-
-  /**
    * Initialize Firebase Admin SDK
    * In production: Uses Application Default Credentials (ADC)
    * In development: Uses service account key file
@@ -63,40 +49,78 @@ export class FirebaseConfig {
         return;
       }
 
-      const isProd = this.isProduction();
+      const isProd = isProduction();
+      const serviceAccountPath = path.join(process.cwd(), 'gcp-key.json');
+      
+      this.firebaseLogger.debug('Production environment detection', {
+        isProd,
+        cwd: process.cwd(),
+        keyFileExists: existsSync(serviceAccountPath),
+        keyFilePath: serviceAccountPath
+      });
       
       if (isProd) {
-        // Production: Use Application Default Credentials (ADC)
+        // Production (Cloud Run): Use Application Default Credentials (ADC)
         // Cloud Run automatically provides credentials via metadata server
-        this.firebaseLogger.info('Initializing Firebase in production mode with Application Default Credentials');
-        
-        admin.initializeApp({
-          projectId: 'keithtest001'
-          // No credential specified - uses ADC automatically
+        // The service account attached to Cloud Run has permissions to access Firestore
+        this.firebaseLogger.info('Initializing Firebase in production mode with Application Default Credentials', {
+          projectId: 'keithtest001',
+          reason: 'gcp-key.json not found - using Cloud Run service account',
+          credentialSource: 'Application Default Credentials (ADC)'
         });
         
-        this.firebaseLogger.info('Firebase initialized with Application Default Credentials');
-      } else {
-        // Development: Use service account key file
-        const serviceAccountPath = path.join(process.cwd(), 'gcp-key.json');
-        
-        if (!existsSync(serviceAccountPath)) {
+        try {
+          admin.initializeApp({
+            projectId: 'keithtest001'
+            // No credential specified - uses ADC automatically from Cloud Run service account
+          });
+          
+          this.firebaseLogger.info('Firebase initialized successfully with Application Default Credentials');
+        } catch (adcError) {
+          this.firebaseLogger.error('Failed to initialize Firebase with ADC', {
+            error: adcError instanceof Error ? adcError.message : String(adcError),
+            hint: 'Ensure Cloud Run service account has Firestore permissions'
+          });
           throw new Error(
-            `Service account key file not found at ${serviceAccountPath}. ` +
-            'Required for local development. Make sure gcp-key.json exists in the project root.'
+            `Failed to initialize Firebase with Application Default Credentials: ${adcError instanceof Error ? adcError.message : String(adcError)}`
           );
         }
+      } else {
+        // Development (Local): Use service account key file
+        // Verify file exists as a safety check
+        if (!existsSync(serviceAccountPath)) {
+          const errorMessage = `Service account key file not found at ${serviceAccountPath}. ` +
+            'Required for local development. Make sure gcp-key.json exists in the project root.';
+          this.firebaseLogger.error('Service account key file missing', {
+            keyPath: serviceAccountPath,
+            cwd: process.cwd()
+          });
+          throw new Error(errorMessage);
+        }
         
-        this.firebaseLogger.info('Initializing Firebase in development mode with service account key', {
-          keyPath: serviceAccountPath
+        this.firebaseLogger.info('Initializing Firebase in development mode with service account key file', {
+          keyPath: serviceAccountPath,
+          projectId: 'keithtest001',
+          credentialSource: 'Service Account Key File'
         });
         
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccountPath),
-          projectId: 'keithtest001'
-        });
-        
-        this.firebaseLogger.info('Firebase initialized with service account key');
+        try {
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccountPath),
+            projectId: 'keithtest001'
+          });
+          
+          this.firebaseLogger.info('Firebase initialized successfully with service account key file');
+        } catch (certError) {
+          this.firebaseLogger.error('Failed to initialize Firebase with service account key', {
+            error: certError instanceof Error ? certError.message : String(certError),
+            keyPath: serviceAccountPath,
+            hint: 'Verify gcp-key.json is valid and has proper permissions'
+          });
+          throw new Error(
+            `Failed to initialize Firebase with service account key: ${certError instanceof Error ? certError.message : String(certError)}`
+          );
+        }
       }
 
       this.initialized = true;
@@ -111,13 +135,39 @@ export class FirebaseConfig {
 
   /**
    * Get Firestore instance
+   * Automatically initializes Firebase if not already initialized
+   * Works in both production (ADC) and development (key file) modes
+   * 
    * @returns Firestore instance
+   * @throws Error if Firebase initialization fails
    */
   public getFirestore() {
+    // Ensure Firebase is initialized before returning Firestore
     if (!this.initialized && admin.apps.length === 0) {
+      this.firebaseLogger.debug('Firestore requested but Firebase not initialized - initializing now');
       this.initialize();
     }
-    return admin.firestore();
+    
+    if (!this.initialized) {
+      throw new Error('Firebase initialization failed - cannot get Firestore instance');
+    }
+    
+    try {
+      const firestore = admin.firestore();
+      this.firebaseLogger.debug('Firestore instance retrieved successfully', {
+        environment: isProduction() ? 'production' : 'development'
+      });
+      return firestore;
+    } catch (error) {
+      this.firebaseLogger.error('Failed to get Firestore instance', {
+        error: error instanceof Error ? error.message : String(error),
+        initialized: this.initialized,
+        appsCount: admin.apps.length
+      });
+      throw new Error(
+        `Failed to get Firestore instance: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
   }
 
   /**

@@ -1,0 +1,123 @@
+---
+alwaysApply: true
+---
+
+# GitHub CLI (`gh`) Rules - ADK Python Project
+
+## Overview
+
+**🚨 PRIMARY TOOL:** GitHub CLI (`gh`) provides **direct GitHub access** for repository operations, PRs, issues, releases, and workflows.
+
+**ALWAYS use `gh` CLI** for GitHub operations instead of web browser.
+
+---
+
+## Workflow (MANDATORY)
+
+1. **Check Authentication**: `gh auth status`
+2. **Execute Command**: Use appropriate `gh` subcommand
+3. **Parse Output**: Process with `--json` flag when needed
+
+---
+
+## AI Agent Rules (MANDATORY)
+
+1. **ALWAYS** use `gh` for GitHub operations (PRs, issues, repos, workflows)
+2. **Check auth first** when encountering permissions errors
+3. **Use JSON output** for programmatic parsing (`--json` flag)
+4. **Include context** in PR/issue descriptions
+5. **Never skip** status checks when debugging workflows
+
+---
+
+## Common Operations
+
+### Pull Requests
+```bash
+gh pr list                                    # List PRs
+gh pr view <number>                           # View PR details
+gh pr create --title "..." --body "..."      # Create PR
+gh pr checkout <number>                       # Checkout PR branch
+gh pr review <number> --approve               # Approve PR
+gh pr merge <number>                          # Merge PR
+gh pr diff <number>                           # View PR diff
+```
+
+### Issues
+```bash
+gh issue list                                 # List issues
+gh issue view <number>                        # View issue
+gh issue create --title "..." --body "..."   # Create issue
+gh issue close <number>                       # Close issue
+```
+
+### Repository
+```bash
+gh repo view                                  # View repo info
+gh repo clone <repo>                          # Clone repository
+gh repo fork                                  # Fork repository
+```
+
+### Workflows (CI/CD Debugging)
+```bash
+gh workflow list                              # List workflows
+gh workflow view <workflow>                   # View workflow details
+gh run list                                   # List workflow runs
+gh run view <run-id>                          # View run logs
+gh run view <run-id> --log                    # Full logs
+gh run view <run-id> --log-failed             # Failed job logs only
+gh run rerun <run-id>                         # Rerun failed workflow
+```
+
+---
+
+## Usage Examples
+
+### Debug Failed Workflow:
+```bash
+gh run list --workflow=deploy.yml --limit=5
+gh run view <run-id> --log-failed
+```
+
+### Create PR with Context:
+```bash
+gh pr create --title "feat(agents): add custom tool" \
+  --body "Implements custom tool support\n\nCloses #123"
+```
+
+### Review PR Changes:
+```bash
+gh pr diff <number>
+gh pr checks <number>
+gh pr review <number> --comment --body "LGTM"
+```
+
+---
+
+## Project Integration
+
+Use `gh` CLI for:
+- **CI/CD Debugging** - View workflow logs, rerun failed jobs
+- **PR Management** - Create, review, merge PRs programmatically
+- **Issue Tracking** - Create/close issues during development
+- **Release Management** - Create releases, tag versions
+- **Repository Operations** - Clone, fork, view repo metadata
+
+---
+
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| List PRs | `gh pr list` |
+| Create PR | `gh pr create --title "..." --body "..."` |
+| View PR | `gh pr view <number>` |
+| Merge PR | `gh pr merge <number>` |
+| List issues | `gh issue list` |
+| Create issue | `gh issue create --title "..."` |
+| View logs | `gh run view <run-id> --log` |
+| Rerun workflow | `gh run rerun <run-id>` |
+
+---
+
+**Repository**: https://github.com/google/adk-python

@@ -96,12 +96,6 @@ Domain ← Application ← App (part of Presentation)
 | Next.js Route | `src/app/api/[resource]/` | `route.ts` (3-5 lines only) |
 | Page Component | `src/app/(pages)/[page]/` | `page.tsx` |
 
-### Available Tools
-- **GCP gcloud CLI**: Cloud Run deployments, GCP operations
-- **Terraform**: Infrastructure as code
-- **Docker CLI**: Containerization
-- **GitHub CLI (gh)**: PR management, repository operations
-
 ### Server Actions vs API Routes Decision Matrix
 
 | Scenario | Pattern | Location |

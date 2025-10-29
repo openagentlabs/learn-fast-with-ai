@@ -1,0 +1,62 @@
+---
+alwaysApply: true
+---
+
+# Project Parameters
+
+## Project Configuration
+
+This file contains all GCP project-specific parameters used throughout the codebase and CLI commands. These parameters are referenced by other rule files.
+
+| Variable | Value | Purpose |
+|----|----|---|
+| `LOGIN_ID` | `keith.tobin@gmail.com` | Google login user name |
+| `PROJECT_ID` | `keithtest001` | Google Cloud project ID |
+| `SERVICE_NAME` | `learn-fast-with-ai` | Cloud Run service name |
+| `REGION` | `europe-west2` | GCP region for project resources |
+| `ARTIFACT_REPO` | `nextjs-containers` | Artifact Registry repository name |
+
+## Usage
+
+These parameters are referenced in:
+- `prj_gcp_cli_rules.mdc` - All gcloud CLI commands use these parameters
+- GitHub Actions workflows - Deployment pipelines
+- Infrastructure configurations - Terraform, Cloud Build, etc.
+
+## Parameter Definitions
+
+### LOGIN_ID
+- **Value**: `keith.tobin@gmail.com`
+- **Used for**: Google Cloud authentication verification
+- **Example**: Used in `gcloud auth list` verification checks
+
+### PROJECT_ID
+- **Value**: `keithtest001`
+- **Used for**: All GCP project-specific operations
+- **Example**: `gcloud config set project <PROJECT_ID>`
+
+### SERVICE_NAME
+- **Value**: `learn-fast-with-ai`
+- **Used for**: Cloud Run service name and related resources
+- **Example**: `gcloud run services describe <SERVICE_NAME>`
+- **Note**: Pipeline name is automatically generated as `<SERVICE_NAME>-pipeline`
+
+### REGION
+- **Value**: `europe-west2`
+- **Used for**: All regional GCP resource operations
+- **Example**: `gcloud run services describe <SERVICE_NAME> --region=<REGION>`
+- **Note**: Used in Artifact Registry paths as `<REGION>-docker.pkg.dev/...`
+
+### ARTIFACT_REPO
+- **Value**: `nextjs-containers`
+- **Used for**: Artifact Registry repository operations
+- **Example**: `gcloud artifacts docker images list <REGION>-docker.pkg.dev/<PROJECT_ID>/<ARTIFACT_REPO>/<SERVICE_NAME>`
+
+## Updating Parameters
+
+To update any parameter:
+1. Modify the value in this file
+2. The change will be reflected in all files that reference these parameters
+3. Ensure consistency across all configurations
+
+---

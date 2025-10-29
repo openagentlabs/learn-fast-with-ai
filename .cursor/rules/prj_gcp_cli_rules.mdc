@@ -1,0 +1,253 @@
+---
+alwaysApply: true
+---
+
+# GCP CLI (`gcloud`) Rules
+
+## Project Configuration Parameters
+
+**📋 Reference:** All GCP project parameters are defined in `prj_parameters.mdc`. Replace parameter placeholders in commands below with actual values from that file.
+
+## Overview
+
+**🚨 PRIMARY TOOL:** GCP CLI (`gcloud`) provides **direct Google Cloud Platform access** for Cloud Run deployments, debugging, service management, and infrastructure operations.
+
+**ALWAYS use `gcloud` CLI** for GCP operations instead of web console.
+
+---
+
+## Workflow (MANDATORY)
+
+1. **Check Parameters**: Verify parameter values in `prj_parameters.mdc` before executing commands
+2. **Check Authentication**: Execute this command `gcloud auth list` and it must return something like `<LOGIN_ID>` (see `prj_parameters.mdc`). If it does not return the expected value, stop all tasks and ask the user to assist with login to `gcloud` cli.
+3. **Check Project**: Execute `gcloud config get-value project` and it must return something like `<PROJECT_ID>` (see `prj_parameters.mdc`). If it does not return the expected value, stop all tasks and ask the user to assist with changing to the correct project using `gcloud` cli.
+4. **Execute Command**: Use appropriate `gcloud` subcommand (replace parameter placeholders with values from `prj_parameters.mdc`)
+5. **Check Output**: Parse JSON output when needed (`--format=json`)
+
+---
+
+## AI Agent Rules (MANDATORY)
+
+1. **ALWAYS** use `gcloud` for GCP operations (deployments, service checks, logs, debugging)
+2. **Reference parameters file** - All parameter values are in `prj_parameters.mdc` - refer to it before executing commands
+3. **Check auth first** when encountering permissions errors
+4. **Use JSON output** for programmatic parsing (`--format=json`)
+5. **Set project context** before running commands (use `<PROJECT_ID>` from `prj_parameters.mdc`)
+6. **Never skip** service status checks when debugging deployments
+
+---
+
+## When to Use GCP CLI
+
+### ✅ Use For:
+- **User adhoc request** - User adhoc requests to interact with Google Cloud (GCP)
+- **Deployment debugging** - Check Cloud Run service status, revisions, traffic
+- **Log investigation** - View Cloud Run logs, build logs, deployment logs
+- **Service health checks** - Verify service is running, check metrics, errors
+- **Image verification** - List Artifact Registry images, check build history
+- **Deployment troubleshooting** - Inspect failed deployments, check Cloud Deploy status
+- **Resource management** - List services, check quotas, verify IAM permissions
+- **Configuration inspection** - View service configs, environment variables, secrets
+
+### ❌ Don't Use For:
+- **Code changes** - Use local development tools instead
+- **Git operations** - Use `git` or GitHub CLI instead
+- **File editing** - Use local editors instead
+- **Browser testing** - Use Chrome MCP instead
+
+---
+
+## Common Operations
+
+### Authentication & Configuration
+```bash
+gcloud auth list                              # List authenticated accounts
+gcloud auth application-default login        # Authenticate for local development
+gcloud config set project xxxxxxxxxxxx       # Set default project
+gcloud config get-value project              # Get current project
+```
+
+### Cloud Run Service Management
+```bash
+# Service status and info
+# Replace <SERVICE_NAME>, <REGION>, <PROJECT_ID> with values from prj_parameters.mdc
+gcloud run services describe <SERVICE_NAME> \
+  --region=<REGION> \
+  --project=<PROJECT_ID>
+
+# List all services
+# Replace <REGION> with value from prj_parameters.mdc
+gcloud run services list --region=<REGION>
+
+# Get service URL
+# Replace <SERVICE_NAME>, <REGION> with values from prj_parameters.mdc
+gcloud run services describe <SERVICE_NAME> \
+  --region=<REGION> \
+  --format="value(status.url)"
+
+# List revisions
+# Replace <SERVICE_NAME>, <REGION> with values from prj_parameters.mdc
+gcloud run revisions list \
+  --service=<SERVICE_NAME> \
+  --region=<REGION>
+```
+
+### Logs and Debugging
+```bash
+# View Cloud Run logs (real-time)
+# Replace <SERVICE_NAME>, <REGION> with values from prj_parameters.mdc
+gcloud run services logs read <SERVICE_NAME> \
+  --region=<REGION> \
+  --limit=50
+
+# View build logs
+gcloud builds list --limit=10
+
+# View specific build logs
+gcloud builds log <BUILD_ID>
+
+# Cloud Deploy releases
+# Replace <SERVICE_NAME>, <REGION> with values from prj_parameters.mdc
+gcloud deploy releases list \
+  --delivery-pipeline=<SERVICE_NAME>-pipeline \
+  --region=<REGION>
+```
+
+### Artifact Registry
+```bash
+# List images
+# Replace <REGION>, <PROJECT_ID>, <ARTIFACT_REPO>, <SERVICE_NAME> with values from prj_parameters.mdc
+gcloud artifacts docker images list \
+  <REGION>-docker.pkg.dev/<PROJECT_ID>/<ARTIFACT_REPO>/<SERVICE_NAME>
+
+# List all images in repo
+# Replace <REGION>, <PROJECT_ID>, <ARTIFACT_REPO> with values from prj_parameters.mdc
+gcloud artifacts docker images list \
+  <REGION>-docker.pkg.dev/<PROJECT_ID>/<ARTIFACT_REPO>
+```
+
+### Deployment Operations
+```bash
+# Submit build
+# Replace <PROJECT_ID> with value from prj_parameters.mdc
+gcloud builds submit \
+  --config=cloudbuild.yaml \
+  --project=<PROJECT_ID>
+
+# Cloud Deploy status
+# Replace <SERVICE_NAME>, <REGION> with values from prj_parameters.mdc
+gcloud deploy releases describe <RELEASE_NAME> \
+  --delivery-pipeline=<SERVICE_NAME>-pipeline \
+  --region=<REGION>
+```
+
+---
+
+## Debugging Workflow
+
+### Service Status Check:
+```bash
+# Replace <PROJECT_ID>, <SERVICE_NAME>, <REGION> with values from prj_parameters.mdc
+1. gcloud config set project <PROJECT_ID>
+2. gcloud run services describe <SERVICE_NAME> --region=<REGION>
+3. Check status.conditions for errors
+4. Verify traffic allocation
+```
+
+### Deployment Failure Investigation:
+```bash
+# Replace <REGION> with value from prj_parameters.mdc
+1. gcloud deploy releases list --region=<REGION>
+2. gcloud deploy releases describe <RELEASE_NAME> --region=<REGION>
+3. Check rollout status and error messages
+4. Review Cloud Run service status
+```
+
+### Log Investigation:
+```bash
+# Replace <SERVICE_NAME>, <REGION> with values from prj_parameters.mdc
+1. gcloud run services logs read <SERVICE_NAME> --region=<REGION> --limit=100
+2. Filter for errors: grep -i error (or use --format=json)
+3. Check build logs if deployment failed
+4. Review service startup logs
+```
+
+### Image Verification:
+```bash
+1. gcloud artifacts docker images list <IMAGE_PATH>
+2. Verify image tags and creation dates
+3. Check for latest successful build
+```
+
+---
+
+## Usage Examples
+
+### Check Service Health:
+```bash
+# Replace <SERVICE_NAME>, <REGION> with values from prj_parameters.mdc
+gcloud run services describe <SERVICE_NAME> \
+  --region=<REGION> \
+  --format="value(status.conditions)"
+```
+
+### View Recent Logs:
+```bash
+# Replace <SERVICE_NAME>, <REGION> with values from prj_parameters.mdc
+gcloud run services logs read <SERVICE_NAME> \
+  --region=<REGION> \
+  --limit=50 \
+  --format=json
+```
+
+### Verify Deployment:
+```bash
+# Replace <SERVICE_NAME>, <REGION> with values from prj_parameters.mdc
+gcloud deploy releases list \
+  --delivery-pipeline=<SERVICE_NAME>-pipeline \
+  --region=<REGION> \
+  --format="table(name,state,createTime)"
+```
+
+### Check Build Status:
+```bash
+gcloud builds list \
+  --limit=5 \
+  --format="table(id,status,createTime,logUrl)"
+```
+
+---
+
+## Best Practices
+
+### Authentication:
+- **Check auth before commands** - Always verify `gcloud auth list` if permission errors occur
+- **Use application-default** - Use `gcloud auth application-default login` for local scripts
+- **Set project context** - Always set project with `gcloud config set project` first
+
+### Output Format:
+- **Use JSON for parsing** - Add `--format=json` when programmatic parsing needed
+- **Use value for scripts** - Use `--format="value(field)"` for single values
+- **Table for readability** - Use `--format="table(...)"` for human-readable output
+
+### Error Handling:
+- **Check service status first** - Always verify service exists and is active
+- **Review logs on failures** - Check Cloud Run logs immediately after deployment failures
+- **Verify IAM permissions** - Ensure service account has required roles
+
+### Debugging:
+- **Start with service status** - Always check `gcloud run services describe` first
+- **Check recent logs** - Use `--limit` flag to control log volume
+- **Verify image exists** - Check Artifact Registry before debugging deployment issues
+
+---
+
+## Project Integration
+
+GCP CLI is essential for:
+- **Deployment verification** - Check Cloud Run service status after GitHub Actions deployment
+- **Issue diagnosis** - View logs, check service health, inspect failures
+- **Infrastructure debugging** - Verify configurations, check resources, investigate errors
+- **Build troubleshooting** - Inspect Cloud Build logs, verify image creation
+
+---
