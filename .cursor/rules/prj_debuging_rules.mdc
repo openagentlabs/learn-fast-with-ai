@@ -5,28 +5,12 @@ alwaysApply: true
 
 # Debugging Rules and Best Practices
 
-## Overview
-This document provides comprehensive guidelines for debugging the different aspects of the projetc
----
-
-## 🚨 MANDATORY: Clean Up Temporary Debug Code
-
-**After debugging is complete and issues are fixed, the AI Agent MUST:**
-
-1. **Remove all temporary debug code** added during debugging
-2. **Delete temporary files** from @scratch/ and @mcp_chrome_images/ directories
-3. **Restore code to production-ready state** - no debug artifacts left behind
-4. **Verify clean state** - run linter and tests to ensure no debug code remains
-
-**This cleanup step is MANDATORY and must be performed after every debugging session.**
-
----
 
 ## 0. Debugging and Temporary File Storage
 
 ### MANDATORY: Use @scratch/ Directory for Debugging and Temporary Files
 
-**Location:** /home/keith/Dev/learn-fast-with-ai/debuging/scratch/
+**Location:** debuging/scratch/
 
 **Purpose:**
 When debugging issues, investigating problems, or needing to save temporary information during development, the AI Agent MUST use the @scratch/ directory for storing temporary files, test data, or debugging artifacts.
@@ -53,9 +37,20 @@ When debugging issues, investigating problems, or needing to save temporary info
 4. Git Ignored: The @scratch/ directory is git-ignored, so files won't be committed
 5. Documentation: If findings are important, document them in appropriate README.md files, not in scratch files
 
+**After debugging is complete and issues are fixed, the AI Agent MUST:**
+
+1. **Remove all temporary debug code** added during debugging
+2. **Delete temporary files** from @scratch/ and @mcp_chrome_images/ directories
+3. **Restore code to production-ready state** - no debug artifacts left behind
+4. **Verify clean state** - run linter and tests to ensure no debug code remains
+
+**This cleanup step is MANDATORY and must be performed after every debugging session.**
+
+---
+
 ### Chrome MCP Server Screenshots
 
-**Location:** /home/keith/Dev/learn-fast-with-ai/debuging/images/
+**Location:** debuging/images/
 
 **Purpose:**
 When debugging web pages and taking screenshots using the Chrome MCP server, store them in the @mcp_chrome_images/ directory (located at debuging/images/).
@@ -81,39 +76,6 @@ When debugging web pages and taking screenshots using the Chrome MCP server, sto
 - When taking screenshots with Chrome MCP server → Use @mcp_chrome_images/ (located at debuging/images/)
 - When debugging is complete → Clean up files from @scratch/ and @mcp_chrome_images/
 - Don't use @scratch/ for permanent files or documentation
-
----
-
-## 1. Logging Strategy for Debugging
-
-### 1.1 When to Add Debug Logging
-
-**ALWAYS add debug logging when:**
-- Creating new functions or methods, entry and exit points
-- Making external API calls or network requests
-- Performing file system operations
-- Processing configuration or environment variables
-- Handling errors or exceptions
-- Executing conditional logic with multiple branches
-- Processing user input or form data
-- Performing data transformations or calculations
-- Working with state management, React hooks, context
-- During asynchronous operations, promises, async and await
-
-### 1.2 How to Add Logging
-
-- Use a shared logger instance
-- Create child loggers with contextual fields such as component, module, function, requestId
-- Log at debug for flow, info for key milestones, warn for slow paths or degradations, error for failures
-- Capture parameters and result summaries, not large payloads
-- Include safe context and avoid secrets
-
-### 1.3 Log Inspection
-
-**After running code, ALWAYS check logs:**
-- Log file location: /log/app.log in project root
-- Logs are in JSON format for structured analysis
-- Use log levels: debug, info, warn, error
 
 ---
 

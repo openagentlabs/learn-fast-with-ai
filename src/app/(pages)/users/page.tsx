@@ -7,6 +7,10 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Button } from '@/presentation/components/ui/button';
 import { redirect } from 'next/navigation';
 
+// Force dynamic rendering to prevent build-time Firebase connection attempts
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface User {
   id: string;
   email: string;

@@ -212,4 +212,30 @@ function notifyUser(user: User): void {
 - Include headers (purpose, date, usage)
 - Delete after use and record in development history
 
+### 8. Logging Strategy for Code Generation
+
+**When generating code, ALWAYS add logging when:**
+- Creating new functions or methods (entry and exit points)
+- Making external API calls or network requests
+- Performing file system operations
+- Processing configuration or environment variables
+- Handling errors or exceptions
+- Executing conditional logic with multiple branches
+- Processing user input or form data
+- Performing data transformations or calculations
+- Working with state management, React hooks, context
+- During asynchronous operations (promises, async/await)
+
+**How to add logging:**
+- Use shared logger instance from `@/lib/logging`
+- Create child loggers with contextual fields (component, module, function, requestId)
+- Log levels: `debug` for flow, `info` for milestones, `warn` for slow paths, `error` for failures
+- Capture parameters and result summaries, not large payloads
+- Include safe context and avoid secrets
+
+**Log inspection:**
+- Check logs at `/log/app.log` after running code
+- Logs are in JSON format for structured analysis
+- Use appropriate log levels: debug, info, warn, error
+
 ---

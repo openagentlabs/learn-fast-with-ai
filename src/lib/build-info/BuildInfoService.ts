@@ -34,9 +34,10 @@ class BuildInfoService {
       return this.buildInfo;
     }
 
+    // Try to import the generated build-info.ts file
+    // During Next.js build, this file may not exist yet, which is fine
+    // We'll fall back to JSON file or default values
     try {
-      // Try to import the generated build-info.ts file
-      // Use dynamic import to handle cases where file doesn't exist
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const buildInfoModule = require('../build-info/build-info');
       
@@ -50,10 +51,9 @@ class BuildInfoService {
           return this.buildInfo;
         }
       }
-    } catch (error) {
-      this.serviceLogger.warn('Failed to load build info from module', {
-        error: error instanceof Error ? error.message : String(error)
-      });
+    } catch {
+      // build-info.ts doesn't exist (e.g., during Next.js build or development)
+      // This is expected - continue to JSON fallback
     }
 
     // Fallback: Try to read from JSON file
