@@ -1,8 +1,12 @@
 // UUID: 9b8c7d6e-5f4a-3b2c-1d0e-9f8a7b6c5d4e
 // BuildInfo module exports
 
-export { buildInfoService, BuildInfoService } from './BuildInfoService';
-export type { BuildInfo } from './BuildInfoService';
+import { buildInfoService, BuildInfoService } from './BuildInfoService';
+import type { BuildInfo } from './BuildInfoService';
+
+// Re-export for explicit compatibility with Next.js build
+export { buildInfoService, BuildInfoService };
+export type { BuildInfo };
 
 // Note: build-info.ts will be auto-generated during build time
 // Access build info through buildInfoService instead of direct imports

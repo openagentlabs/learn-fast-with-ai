@@ -6,15 +6,14 @@ alwaysApply: true
 # Debugging Rules and Best Practices
 
 ## Overview
-This document provides comprehensive guidelines for debugging and generating code with proper instrumentation for the learn-fast-with-ai application, a Next.js 15 application built with TypeScript, React 19, and Tailwind CSS v4.
-
+This document provides comprehensive guidelines for debugging the different aspects of the projetc
 ---
 
 ## 🚨 MANDATORY: Clean Up Temporary Debug Code
 
 **After debugging is complete and issues are fixed, the AI Agent MUST:**
 
-1. **Remove all temporary debug code** added during debugging (console.log, debugger statements, temporary variables)
+1. **Remove all temporary debug code** added during debugging
 2. **Delete temporary files** from @scratch/ and @mcp_chrome_images/ directories
 3. **Restore code to production-ready state** - no debug artifacts left behind
 4. **Verify clean state** - run linter and tests to ensure no debug code remains

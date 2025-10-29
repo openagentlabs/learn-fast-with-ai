@@ -9,6 +9,6 @@ alwaysApply: true
 
 
 ** CLI Tools
-- Placeholder
+- GitHub: The cli called 'gh' is installed and authenticated and should be used to required to access or debug GitHub.
 
 
