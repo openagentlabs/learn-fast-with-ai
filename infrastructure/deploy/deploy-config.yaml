@@ -16,6 +16,7 @@ spec:
     spec:
       containerConcurrency: 80
       timeoutSeconds: 300
+      serviceAccountName: learn-fast-with-ai-cloud-run-s@keithtest001.iam.gserviceaccount.com
       containers:
       - image: IMAGE_PLACEHOLDER
         ports:
